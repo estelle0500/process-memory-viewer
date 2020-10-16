@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
-project(process_memory_viewer)
+project(ProcessMemoryViewer)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(process_memory_viewer MemoryExplorer.cpp)
+list(APPEND SOURCE_DIR_FILES "src/VirtualMemoryWrapper.cpp")
+
+add_executable(ProcessMemoryViewer MemoryExplorer.cpp ${SOURCE_DIR_FILES})
