@@ -1,5 +1,8 @@
 #include "VirtualMemoryWrapper.h"
 #include <cassert>
+#include <string>
+#include <sstream>
+#include <fstream>
 #include <sys/uio.h>
 
 namespace ProcessMemoryViewer {
@@ -23,5 +26,41 @@ int VirtualMemoryWrapper::ReadInt(void *address) {
 
     assert(num_bytes_read == sizeof(int));
     return int_read;
+}
+
+void VirtualMemoryWrapper::PrintMappedMemory(std::ostream &os) {
+    std::vector<MemoryRegion> regions = this->GetMappedMemory();
+    for (const MemoryRegion &region : regions) {
+        if (region.pathname() == "[stack]" || region.pathname() == "[heap]") {
+            os << region;
+        } 
+    }
+}
+
+std::vector<MemoryRegion> VirtualMemoryWrapper::GetMappedMemory() {
+    constexpr char PROC_DIRECTORY[] = "/proc";
+    constexpr char PATH_SEP[] = "/";
+    constexpr char MAPS_FILE[] = "maps";
+    
+    std::ostringstream oss;
+    oss << PROC_DIRECTORY << PATH_SEP << process_id_ << PATH_SEP << MAPS_FILE;
+    const std::string maps_filepath = oss.str();
+    std::ifstream maps_stream(maps_filepath);
+
+    std::vector<MemoryRegion> regions;
+
+    while (true) {
+        std::string line;
+        getline(maps_stream, line);
+        if (maps_stream.eof()) {
+            break;
+        }
+        std::istringstream single_line_stream(line);
+
+        MemoryRegion region;
+        single_line_stream >> region;
+        regions.emplace_back(region);
+    }
+    return regions;
 }
 } // namespace ProcessMemoryViewer
