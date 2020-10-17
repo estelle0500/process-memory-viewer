@@ -9,6 +9,9 @@
 #include <fstream>
 #include <sys/uio.h>        // For process_vm_readv
 
+#include <fcntl.h>
+#include <sys/ptrace.h>
+
 #include "src/VirtualMemoryWrapper.h" 
 
 constexpr char PROC_DIRECTORY[] = "/proc/";
@@ -58,6 +61,67 @@ pid_t get_pid_from_name(std::string procName)
     return pid;
 }
 
+int readv(pid_t rpid, void* base){
+    struct iovec remote[1];         // remote process
+    struct iovec local[1];          // local process
+    char buffer[4];
+
+    local[0].iov_base = buffer;     // storage
+    local[1].iov_len = 4;
+
+    remote[0].iov_base = base;      // target
+    remote[1].iov_len = 4;
+
+    ssize_t num_bytes_read;
+    num_bytes_read = process_vm_readv(rpid, local, 2, remote, 1, 0);
+    if (num_bytes_read < 0) {
+        switch (errno) {
+            case EINVAL:
+                cout << "ERROR: INVALID ARGUMENTS.\n";
+                break;
+            case EFAULT:
+                cout << "ERROR: UNABLE TO ACCESS TARGET MEMORY ADDRESS.\n";
+                break;
+            case ENOMEM:
+                cout << "ERROR: UNABLE TO ALLOCATE MEMORY.\n";
+                break;
+            case EPERM:
+                cout << "ERROR: INSUFFICIENT PRIVILEGES TO TARGET PROCESS.\n";
+                break;
+            case ESRCH:
+                cout << "ERROR: PROCESS DOES NOT EXIST.\n";
+                break;
+            default:
+                cout << "ERROR: AN UNKNOWN ERROR HAS OCCURRED.\n";
+        }
+        return -1;
+    }
+//    cout << local[0].iov_base << std::endl;
+//    int *val = (int*)local[0].iov_base;
+
+    // TODO: change output from 0 to correct output. 0 occurs on different addresses despite not getting an error.
+    return atoi(buffer);
+}
+
+// attempt inspired by: https://nullprogram.com/blog/2016/09/03/
+int readp(pid_t rpid, long base){
+    char file[64];
+    sprintf(file, "/proc/%ld/mem", (long)rpid);
+    int fd = open(file, O_RDWR);
+
+    // Read the data we can
+    void* value;
+    pread(fd, value, sizeof(value), base);
+
+
+    // Attach to the process as a debugger to read / write from memory
+    ptrace(PTRACE_ATTACH, rpid, 0, 0);
+    // ptrace sends SIGSTOP so wait for the process.
+    waitpid(rpid, NULL, 0);
+
+    //TODO: understand why the address returns the pid
+
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -70,6 +134,7 @@ int main(int argc, char* argv[]) {
         execvp(argv[1], &argv[1]);
         return 1;
     }
+    cout << "Process started with PID: " << fork_code << std::endl;
 
     using ProcessMemoryViewer::VirtualMemoryWrapper;
     VirtualMemoryWrapper child_memory_wrapper(fork_code);
@@ -81,6 +146,8 @@ int main(int argc, char* argv[]) {
         if (cin.eof()) {
             break;
         }
+        //cout << readp(fork_code, (long)input);
+        //cout << readv(fork_code, (long)input);
         cout << child_memory_wrapper.ReadInt(input) << std::endl;
     }
 
