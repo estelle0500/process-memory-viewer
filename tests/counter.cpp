@@ -5,7 +5,7 @@
 #define DEBUG
 
 /* 
-This test program increments a non-static integer value infinitely
+This test program increments a non-static integer value to a set iteration
 */
 
 int main() {

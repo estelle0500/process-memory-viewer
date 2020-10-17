@@ -61,6 +61,10 @@ pid_t get_pid_from_name(std::string procName)
     return pid;
 }
 
+void set_proc_run_state(pid_t pid, bool running = true){
+    kill(pid, running ? SIGCONT : SIGSTOP);
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cout << "Usage: ./ProcessMemoryViewer <exe> [ARGS]..." << std::endl;
@@ -89,6 +93,20 @@ int main(int argc, char* argv[]) {
 
         if (input == "dump") {
             child_memory_wrapper.PrintMappedMemory(cout);
+        } else if (input == "getpid") {
+            string name;
+            cin >> name;
+            cout << get_pid_from_name(name) << std::endl;
+        } else if (input == "cont") {
+            set_proc_run_state(fork_code, true);
+            break;
+        } else if (input == "pause") {
+            set_proc_run_state(fork_code, false);
+            break;
+        } else if (input == "kill") {
+            kill(fork_code, SIGTERM);
+            cout << "Child process has been terminated.\n" << std::endl;
+            exit(1);
         } else if (input == "read") {
             void *address;
             cin >> address;
