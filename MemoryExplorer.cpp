@@ -140,15 +140,22 @@ int main(int argc, char* argv[]) {
     VirtualMemoryWrapper child_memory_wrapper(fork_code);
 
     while (true) {
-        void* input;
-        cin >> input;
+        cout << "> ";
+        flush(cout);
 
+        std::string input;
+        cin >> input;
         if (cin.eof()) {
             break;
         }
-        //cout << readp(fork_code, (long)input);
-        //cout << readv(fork_code, (long)input);
-        cout << child_memory_wrapper.ReadInt(input) << std::endl;
+
+        if (input == "dump") {
+            child_memory_wrapper.PrintMappedMemory(cout);
+        } else if (input == "read") {
+            void *address;
+            cin >> address;
+            cout << child_memory_wrapper.ReadInt(address) << std::endl;
+        }
     }
 
     int child_status;
