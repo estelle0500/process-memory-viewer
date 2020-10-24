@@ -60,44 +60,49 @@ void CommandLineInterface::HandleInput(std::string input) {
     std::string command;
     input_stream >> command;
 
-    if (input == "info") {
+    if (command == "info") {
         memory_wrapper_.PrintRegionInfo(out_stream_);
-    } else if (input == "cont") {
+    } else if (command == "cont") {
         set_proc_run_state(memory_wrapper_.process_id(), true);
-    } else if (input == "getpid") {
+    } else if (command == "getpid") {
         std::string name;
         input_stream >> name;
         out_stream_ << get_pid_from_name(name) << std::endl;
-    } else if (input == "getregion") {
+    } else if (command == "getregion") {
         void *address;
         input_stream >> address;
         ProcessMemoryViewer::MemoryRegion *mr = memory_wrapper_.GetRegionOfAddress(address);
         out_stream_ << "Region: " << mr->id << std::endl;
-    } else if (input == "pause") {
+    } else if (command == "pause") {
         set_proc_run_state(memory_wrapper_.process_id(), false);
-    } else if (input == "printregion") {
+    } else if (command == "printregion") {
         int region;
         input_stream >> region;
         out_stream_ << "Printing region: " << region << std::endl;
         memory_wrapper_.PrintRegion(region, 4);
-    } else if (input == "printregions") {
+    } else if (command == "printregions") {
         memory_wrapper_.PrintRegionBounds();
-    } else if (input == "read") {
+    } else if (command == "read") {
         void *address;
         input_stream >> address;
         out_stream_ << memory_wrapper_.Read<int>(address) << std::endl;
-    } else if (input == "find") {
+    } else if (command == "find") {
         int value;
         input_stream >> value;
         memory_wrapper_.FindValues(value);
-    } else if (input == "findpattern") {
+    } else if (command == "findpattern") {
         char *data, *pattern;
         input_stream >> data >> pattern;
         out_stream_ << "Find 1: " << memory_wrapper_.FindPattern(data, pattern) << std::endl;
-    } else if (input == "kill" || input == "exit") {
+    } else if (command == "kill" || command == "exit") {
         kill(memory_wrapper_.process_id(), SIGTERM);
         out_stream_ << "Child process has been terminated.\n" << std::endl;
         exit(1);
+    } else if (command == "write") {
+        void *address;
+        int value;
+        input_stream >> address >> value;
+        memory_wrapper_.Write<int>(address, value);  
     } else {
         out_stream_ << "Unrecognized command" << std::endl;
     }

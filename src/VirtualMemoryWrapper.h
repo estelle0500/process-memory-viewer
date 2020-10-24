@@ -30,9 +30,21 @@ class VirtualMemoryWrapper {
       ssize_t num_bytes_read = process_vm_readv(process_id_, &local_iov, 1, &remote_iov, 1, 0);
 
       if (num_bytes_read != sizeof(T)) {
-          perror("VirtualMemoryWrapper: Read failed: ");
+          perror("VirtualMemoryWrapper : Read failed");
       }
       return buffer;
+    }
+
+    /* Write data at "address" */
+    template <class T>
+    void Write(void *address, T data) {
+      struct iovec remote_iov{address, sizeof(T)};
+      struct iovec local_iov{&data, sizeof(T)};
+      ssize_t num_bytes_written = process_vm_writev(process_id_, &local_iov, 1, &remote_iov, 1, 0);
+
+      if (num_bytes_written != sizeof(T)) {
+          perror("VirtualMemoryWrapper : Write failed");
+      }
     }
 
     /* Prints mapped memory regions on the heap and stack */
