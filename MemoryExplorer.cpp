@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         } else if (input == "read") {
             void *address;
             cin >> address;
-            cout << child_memory_wrapper.ReadInt(address) << std::endl;
+            cout << child_memory_wrapper.Read<int>(address) << std::endl;
         } else if (input == "find") {
             int value;
             cin >> value;
