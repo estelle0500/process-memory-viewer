@@ -5,14 +5,12 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <sys/uio.h>
-#include <inttypes.h>
-#include <dirent.h>
 #include <string.h>>
 #include <iostream>
 
 namespace ProcessMemoryViewer {
 
-    VirtualMemoryWrapper::VirtualMemoryWrapper(pid_t process_id) : process_id_(process_id) {}
+    VirtualMemoryWrapper::VirtualMemoryWrapper(pid_t process_id) : process_id_(process_id) {ParseMaps();}
 
     char VirtualMemoryWrapper::ReadByte(void *address) {
         char byte_read;
@@ -36,10 +34,11 @@ namespace ProcessMemoryViewer {
 
     MemoryRegion* VirtualMemoryWrapper::GetRegionOfAddress(void* address){
         for(size_t i = 0; i < Memory_Regions.size(); i++) {
-            unsigned long begin = (unsigned long)Memory_Regions[i].begin_;
-            unsigned long end = (unsigned long)Memory_Regions[i].end_;
-            if(begin > (unsigned long) address
-            && (begin + end) <= (unsigned long) address) {
+            unsigned long begin         = (unsigned long) Memory_Regions[i].begin_;
+            unsigned long end           = (unsigned long) Memory_Regions[i].end_;
+            unsigned long ul_address    = (unsigned long) address;
+
+            if(begin < ul_address && end >= ul_address) {
                 return &Memory_Regions[i];
             }
         }
@@ -54,13 +53,20 @@ namespace ProcessMemoryViewer {
         }
     }
 
+    void VirtualMemoryWrapper::ParseMaps(){
+        Memory_Regions.clear();
+        Memory_Regions = GetMappedMemory();
+        return;
+    }
+
     std::vector<MemoryRegion> VirtualMemoryWrapper::GetMappedMemory() {
+        int count = 0;
         std::ostringstream oss;
         oss << PROC_DIRECTORY << PATH_SEP << process_id_ << PATH_SEP << MAPS_FILE;      // proc/pid/maps
-        const std::string maps_filepath = oss.str();                                    // gets the string
-        std::ifstream maps_stream(maps_filepath);                                       // file stream
+        const std::string maps_filepath = oss.str();
+        std::ifstream maps_stream(maps_filepath);
 
-        std::vector<MemoryRegion> regions;                                              // region vector
+        std::vector<MemoryRegion> regions;
 
         while (true) {
             std::string line;
@@ -71,6 +77,15 @@ namespace ProcessMemoryViewer {
             std::istringstream single_line_stream(line);
 
             MemoryRegion region;
+            region.id = count;
+            count++;
+
+            // Permissions
+            region.readable     = (region.permissions_[0] == 'r');
+            region.writable     = (region.permissions_[1] == 'w');
+            region.executable   = (region.permissions_[2] == 'x');
+            region.shared       = (region.permissions_[3] != '-');
+
             single_line_stream >> region;
             regions.emplace_back(region);
         }
@@ -103,7 +118,7 @@ namespace ProcessMemoryViewer {
         return (process_vm_readv(process_id_, local, 1, remote, 1, 0) == size);
     }
 
-    void *VirtualMemoryWrapper::Find(const char *data, const char *pattern) {
+    void *VirtualMemoryWrapper::FindPattern(const char *data, const char *pattern) {
         char buffer[4];
 
         if(Memory_Regions.empty()){
@@ -115,11 +130,11 @@ namespace ProcessMemoryViewer {
         size_t len = strlen(pattern);
         size_t chunksize = sizeof(buffer);
         size_t total = end - begin;
-        size_t chunkno = 0;
+        size_t chunk = 0;
 
         while(total) {
             size_t readsize = (total < chunksize) ? total : chunksize;
-            size_t readaddr = begin + (chunksize * chunkno);
+            size_t readaddr = begin + (chunksize * chunk);
 
             bzero(buffer, chunksize);
 
@@ -136,18 +151,13 @@ namespace ProcessMemoryViewer {
                     }
                 }
             }
-
             total -= readsize;
-            chunkno++;
+            chunk++;
         }
-
         return NULL;
     }
 
     void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
-        if(Memory_Regions.empty()){
-            Memory_Regions = GetMappedMemory();
-        }
         unsigned long begin = (unsigned long)Memory_Regions[index].begin_;
         unsigned long end = (unsigned long)Memory_Regions[index].end_;
         char buffer[buffer_size];
@@ -155,17 +165,43 @@ namespace ProcessMemoryViewer {
         size_t total = end - begin;
         size_t chunk = 0;
 
+        std::cout << "size: " << Memory_Regions.size() << std::endl;
+
         while(total) {
             size_t readsize = (total < chunksize) ? total : chunksize;
             size_t readaddr = begin + (chunksize * chunk);
 
             bzero(buffer, chunksize);
 
-            std::cout << readaddr << ":\t\t" << ReadInt(reinterpret_cast<void *>(readaddr)) << std::endl;
+            if(Read((void*) readaddr, buffer, readsize)) {
+                std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t" << ReadInt(reinterpret_cast<void *>(readaddr)) << "\t\t\t" << buffer << std::endl;
+            }
 
             total -= readsize;
             chunk++;
         }
+    }
+
+    void VirtualMemoryWrapper::PrintRegionBounds() {
+        for(size_t i = 0; i < Memory_Regions.size(); i++) {
+            std::cout << "Checking region " << i << ": " << Memory_Regions[i].begin_ << "\t" << Memory_Regions[i].end_ << std::endl;
+        }
+    }
+
+    std::vector<void *> VirtualMemoryWrapper::FindValues(int value) {
+        unsigned long begin     = (unsigned long)Memory_Regions[0].begin_;
+        unsigned long end       = (unsigned long)Memory_Regions[0].end_;
+
+        std::vector<void*> matchedAddresses;
+        for (unsigned long i = begin; i < end; i += 4) {
+            int val = ReadInt((void*)i);
+            if(val == value){
+                std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
+                matchedAddresses.push_back((void*)i);
+            }
+        }
+
+        return matchedAddresses;
     }
 
 } // namespace ProcessMemoryViewer

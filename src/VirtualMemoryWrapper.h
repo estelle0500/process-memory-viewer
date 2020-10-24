@@ -9,47 +9,61 @@ namespace ProcessMemoryViewer {
 /* 
 Wrapper class that provides convenient methods to read/write to virtual memory of another process
 */
-class VirtualMemoryWrapper {
+    class VirtualMemoryWrapper {
 
-    static constexpr char PROC_DIRECTORY[] = "/proc";
-    static constexpr char PATH_SEP[] = "/";
-    static constexpr char MAPS_FILE[] = "maps";
-  public:
-    uintptr_t va() const;                       // Current virtual address
-    uintptr_t last_va() const;                  // Last virtual address
-    std::vector<MemoryRegion> Memory_Regions;   // Regions
+        static constexpr char PROC_DIRECTORY[] = "/proc";
+        static constexpr char PATH_SEP[] = "/";
+        static constexpr char MAPS_FILE[] = "maps";
+    public:
+        uintptr_t va() const;                       // Current virtual address
+        uintptr_t last_va() const;                  // Last virtual address
+        std::vector<MemoryRegion> Memory_Regions;   // Regions
 
-    VirtualMemoryWrapper(pid_t process_id);
+        VirtualMemoryWrapper(pid_t process_id);
 
-    /* Read and return a single byte at "address" */
-    char ReadByte(void *address);
+        /* Read and return a single byte at "address" */
+        char ReadByte(void *address);
 
-    /* Read and return an int at "address" */
-    int ReadInt(void *address);
+        /* Read and return an int at "address" */
+        int ReadInt(void *address);
 
-    /* Prints mapped memory regions on the heap and stack */
-    void PrintRegionInfo(std::ostream &os);
+        /* Prints mapped memory regions on the heap and stack */
+        void PrintRegionInfo(std::ostream &os);
 
-    /* Returns that the process exists */
-    bool IsValid();
+        /* Returns that the process exists */
+        bool IsValid();
 
-    /* Returns that the wrapped process is still running */
-    bool IsRunning();
+        /* Returns that the wrapped process is still running */
+        bool IsRunning();
 
-    void* Find(const char* data, const char* pattern);
+        /* Find a pattern in memory
+         *
+         * usage:
+         *  find("\xFA\x00\x00\x00\x00\x22\x33\x44\x55\xDD\x34",
+            "x????xxxxxx")
+         * */
+        void *FindPattern(const char *data, const char *pattern);
 
-    bool Read(void* address, void* buffer, size_t size);
-    bool Write(void* address, void* buffer, size_t size);
+        std::vector<void*> FindValues(int value);
 
-    unsigned long GetCallAddress(void* address);
+        /* Read process memory wrapper for different buffers */
+        bool Read(void *address, void *buffer, size_t size);
 
-    MemoryRegion* GetRegionOfAddress(void* address);
+        /* Replace active region maps */
+        void ParseMaps();
 
-    void PrintRegion(int index, size_t buffer_size);
+        /* Returns region of a given memory address */
+        MemoryRegion *GetRegionOfAddress(void *address);
 
-  private:
-    const pid_t process_id_;
+        /* Print all variables in a region */
+        void PrintRegion(int index, size_t buffer_size);
 
-    std::vector<MemoryRegion> GetMappedMemory();
-};
+        /* Print all region start & end addresses */
+        void PrintRegionBounds();
+
+    private:
+        const pid_t process_id_;
+
+        std::vector<MemoryRegion> GetMappedMemory();
+    };
 } // namespace ProcessMemoryViewer

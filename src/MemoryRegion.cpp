@@ -17,4 +17,6 @@ std::istream& operator>>(std::istream &is, MemoryRegion &region) {
        >> region.inode_ >> region.pathname_;
     return is;
 }
+
+
 } // namespace ProcessMemoryViewer

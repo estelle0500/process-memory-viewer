@@ -92,7 +92,6 @@ int main(int argc, char* argv[]) {
         }
         if (input == "info") {
             child_memory_wrapper.PrintRegionInfo(cout);
-
         } else if (input == "cont") {
             set_proc_run_state(fork_code, true);
         } else if (input == "getpid") {
@@ -102,7 +101,8 @@ int main(int argc, char* argv[]) {
         } else if (input == "getregion") {
             void *address;
             cin >> address;
-            cout << "Region: " << child_memory_wrapper.GetRegionOfAddress(address) << std::endl;
+            ProcessMemoryViewer::MemoryRegion *mr = child_memory_wrapper.GetRegionOfAddress(address);
+            cout << "Region: " << mr->id << std::endl;
         } else if (input == "pause") {
             set_proc_run_state(fork_code, false);
         } else if (input == "printregion") {
@@ -110,13 +110,21 @@ int main(int argc, char* argv[]) {
             cin >> region;
             cout << "Printing region: " << region << std::endl;
             child_memory_wrapper.PrintRegion(region, 4);
+        } else if (input == "printregions") {
+            child_memory_wrapper.PrintRegionBounds();
         } else if (input == "read") {
             void *address;
             cin >> address;
             cout << child_memory_wrapper.ReadInt(address) << std::endl;
         } else if (input == "find") {
-            // TODO: elaborate on find patterns
-            cout << "Find 1: " << child_memory_wrapper.Find("1", "1") << std::endl;
+            int value;
+            cin >> value;
+            child_memory_wrapper.FindValues(value);
+        } else if (input == "findpattern") {
+            char *data, *pattern;
+            cin >> data;
+            cin >> pattern;
+            cout << "Find 1: " << child_memory_wrapper.FindPattern(data, pattern) << std::endl;
         } else if (input == "kill" || input == "exit") {
             kill(fork_code, SIGTERM);
             cout << "Child process has been terminated.\n" << std::endl;
