@@ -69,6 +69,10 @@ class VirtualMemoryWrapper {
     /* Print all region start & end addresses */
     void PrintRegionBounds();
 
+    pid_t process_id() const {
+        return process_id_;
+    }
+
   private:
     const pid_t process_id_;
 
