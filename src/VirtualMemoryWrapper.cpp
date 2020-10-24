@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <dirent.h>
 #include <string.h>>
+#include <iostream>
 
 namespace ProcessMemoryViewer {
 
@@ -87,6 +88,83 @@ namespace ProcessMemoryViewer {
         struct stat sts;
         if(stat((("/proc/" + process_id_)), &sts) != -1) {
             return false;
+        }
+    }
+
+    bool VirtualMemoryWrapper::Read(void* address, void* buffer, size_t size) {
+        struct iovec local[1];
+        struct iovec remote[1];
+
+        local[0].iov_base = buffer;
+        local[0].iov_len = size;
+        remote[0].iov_base = address;
+        remote[0].iov_len = size;
+
+        return (process_vm_readv(process_id_, local, 1, remote, 1, 0) == size);
+    }
+
+    void *VirtualMemoryWrapper::Find(const char *data, const char *pattern) {
+        char buffer[4];
+
+        if(Memory_Regions.empty()){
+            Memory_Regions = GetMappedMemory();
+        }
+        unsigned long begin = (unsigned long)Memory_Regions[0].begin_;
+        unsigned long end = (unsigned long)Memory_Regions[0].end_;
+
+        size_t len = strlen(pattern);
+        size_t chunksize = sizeof(buffer);
+        size_t total = end - begin;
+        size_t chunkno = 0;
+
+        while(total) {
+            size_t readsize = (total < chunksize) ? total : chunksize;
+            size_t readaddr = begin + (chunksize * chunkno);
+
+            bzero(buffer, chunksize);
+
+            if(Read((void*) readaddr, buffer, readsize)) {
+                for(size_t b = 0; b < readsize; b++) {
+                    size_t matches = 0;
+
+                    while(buffer[b + matches] == data[matches] || pattern[matches] != 'x') {
+                        matches++;
+
+                        if(matches == len) {
+                            return (char*) (readaddr + b);
+                        }
+                    }
+                }
+            }
+
+            total -= readsize;
+            chunkno++;
+        }
+
+        return NULL;
+    }
+
+    void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
+        if(Memory_Regions.empty()){
+            Memory_Regions = GetMappedMemory();
+        }
+        unsigned long begin = (unsigned long)Memory_Regions[index].begin_;
+        unsigned long end = (unsigned long)Memory_Regions[index].end_;
+        char buffer[buffer_size];
+        size_t chunksize = sizeof(buffer);
+        size_t total = end - begin;
+        size_t chunk = 0;
+
+        while(total) {
+            size_t readsize = (total < chunksize) ? total : chunksize;
+            size_t readaddr = begin + (chunksize * chunk);
+
+            bzero(buffer, chunksize);
+
+            std::cout << readaddr << ":\t\t" << ReadInt(reinterpret_cast<void *>(readaddr)) << std::endl;
+
+            total -= readsize;
+            chunk++;
         }
     }
 

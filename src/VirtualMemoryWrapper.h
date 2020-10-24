@@ -45,6 +45,8 @@ class VirtualMemoryWrapper {
 
     MemoryRegion* GetRegionOfAddress(void* address);
 
+    void PrintRegion(int index, size_t buffer_size);
+
   private:
     const pid_t process_id_;
 
