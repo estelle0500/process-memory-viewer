@@ -90,20 +90,21 @@ int main(int argc, char* argv[]) {
         if (cin.eof()) {
             break;
         }
-
-        if (input == "dump") {
-            child_memory_wrapper.PrintMappedMemory(cout);
+        if (input == "info") {
+            child_memory_wrapper.PrintRegionInfo(cout);
         } else if (input == "getpid") {
             string name;
             cin >> name;
             cout << get_pid_from_name(name) << std::endl;
         } else if (input == "cont") {
             set_proc_run_state(fork_code, true);
-            break;
         } else if (input == "pause") {
             set_proc_run_state(fork_code, false);
-            break;
-        } else if (input == "kill") {
+        } else if (input == "region") {
+            void *address;
+            cin >> address;
+            cout << "Region: " << child_memory_wrapper.GetRegionOfAddress(address) << std::endl;
+        } else if (input == "kill" || input == "exit") {
             kill(fork_code, SIGTERM);
             cout << "Child process has been terminated.\n" << std::endl;
             exit(1);

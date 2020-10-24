@@ -12,13 +12,22 @@ class MemoryRegion {
         return this->pathname_;
     }
 
-  private:
     void *begin_;
     void *end_;
+private:
+
     std::string permissions_;
+
+    // Permissions
+    bool readable;
+    bool writable;
+    bool executable;
+    bool shared;
+
     long offset_;
     std::string dev_;
     long inode_;
     std::string pathname_;
+    std::string filename_;
 };
 } // namespace ProcessMemoryViewer
