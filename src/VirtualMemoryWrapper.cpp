@@ -166,20 +166,24 @@ void VirtualMemoryWrapper::PrintRegionBounds() {
         std::cout << "Checking region " << i << ": " << Memory_Regions[i].begin_ << "\t" << Memory_Regions[i].end_ << std::endl;
     }
 }
+// if has no permissions - regions
 
 std::vector<void *> VirtualMemoryWrapper::FindValues(int value) {
-    unsigned long begin     = (unsigned long)Memory_Regions[0].begin_;
-    unsigned long end       = (unsigned long)Memory_Regions[0].end_;
 
     std::vector<void*> matchedAddresses;
-    for (unsigned long i = begin; i < end; i += 4) {
-        int val = Read<int>((void*)i);
-        if(val == value){
-            std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
-            matchedAddresses.push_back((void*)i);
+    for (int i = 0; i < Memory_Regions.size()-1; ++i) {
+        unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
+        unsigned long end       = (unsigned long)Memory_Regions[i].end_;
+
+        for (unsigned long i = begin; i < end; i += 4) {
+            if(int val = Read<int>((void*)i)) {
+                if(val == value){
+                    std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
+                    matchedAddresses.push_back((void*)i);
+                }
+            }
         }
     }
-
     return matchedAddresses;
 }
 } // namespace ProcessMemoryViewer
