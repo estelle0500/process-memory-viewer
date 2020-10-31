@@ -76,12 +76,12 @@ namespace ProcessMemoryViewer {
             double ep;
             input_stream >> ep;
             memory_wrapper_.ep = ep;
-        } else if (command == "printregion") {
+        } else if (command == "printregion" || command == "region") {
             int region;
             input_stream >> region;
             out_stream_ << "Printing region: " << region << std::endl;
             memory_wrapper_.PrintRegion(region, 4);
-        } else if (command == "printregions") {
+        } else if (command == "printregions" || command == "regions") {
             memory_wrapper_.PrintRegionBounds();
         } else if (command == "read") {
             void *address;
