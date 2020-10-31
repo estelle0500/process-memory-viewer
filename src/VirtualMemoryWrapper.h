@@ -66,10 +66,7 @@ class VirtualMemoryWrapper {
     void *FindPattern(const char *data, const char *pattern);
 
     template<typename T>
-    void PrintMemoryValue(void* address, T value);
-
-    template<typename T>
-    std::vector<void *> FindValues(T value) {
+    std::vector<void *> SearchValue(T value) {
         std::vector<void*> matchedAddresses;
 
         std::cout << "Address" << "\t\t\t\t" << "value" << std::endl;

@@ -89,15 +89,11 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "findint" || command == "find") {
         int value;
         input_stream >> value;
-        memory_wrapper_.FindValues<int>(value);
+        memory_wrapper_.SearchValue<int>(value);
     } else if (command == "findfloat") {
         float value;
         input_stream >> value;
-        memory_wrapper_.FindValues<float>(value);
-    } else if (command == "findpattern") {
-        char *data, *pattern;
-        input_stream >> data >> pattern;
-        out_stream_ << "Find 1: " << memory_wrapper_.FindPattern(data, pattern) << std::endl;
+        memory_wrapper_.SearchValue<float>(value);
     } else if (command == "kill" || command == "exit") {
         kill(memory_wrapper_.process_id(), SIGTERM);
         out_stream_ << "Child process has been terminated.\n" << std::endl;
