@@ -86,10 +86,14 @@ void CommandLineInterface::HandleInput(std::string input) {
         void *address;
         input_stream >> address;
         out_stream_ << memory_wrapper_.Read<int>(address) << std::endl;
-    } else if (command == "find") {
+    } else if (command == "findint" || command == "find") {
         int value;
         input_stream >> value;
-        memory_wrapper_.FindValues(value);
+        memory_wrapper_.FindValues<int>(value);
+    } else if (command == "findfloat") {
+        float value;
+        input_stream >> value;
+        memory_wrapper_.FindValues<float>(value);
     } else if (command == "findpattern") {
         char *data, *pattern;
         input_stream >> data >> pattern;

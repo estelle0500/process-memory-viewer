@@ -136,6 +136,8 @@ void *VirtualMemoryWrapper::FindPattern(const char *data, const char *pattern) {
     return NULL;
 }
 
+
+
 void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
     unsigned long begin = (unsigned long)Memory_Regions[index].begin_;
     unsigned long end = (unsigned long)Memory_Regions[index].end_;
@@ -166,24 +168,29 @@ void VirtualMemoryWrapper::PrintRegionBounds() {
         std::cout << "Checking region " << i << ": " << Memory_Regions[i].begin_ << "\t" << Memory_Regions[i].end_ << std::endl;
     }
 }
-// if has no permissions - regions
 
-std::vector<void *> VirtualMemoryWrapper::FindValues(int value) {
+//template<typename T>
+//std::vector<void *> VirtualMemoryWrapper::FindValues(T value) {
+//    std::vector<void*> matchedAddresses;
+//    for (int i = 0; i < Memory_Regions.size()-1; ++i) {
+//        unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
+//        unsigned long end       = (unsigned long)Memory_Regions[i].end_;
+//
+//        for (unsigned long i = begin; i < end; i += 4) {
+//            if(int val = Read<int>((void*)i)) {
+//                if(val == value){
+//                    //std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
+//                    std::cout << (void*)i << "\t\t\t" << value;
+//                    matchedAddresses.push_back((void*)i);
+//                }
+//            }
+//        }
+//    }
+//    return matchedAddresses;
+//}
 
-    std::vector<void*> matchedAddresses;
-    for (int i = 0; i < Memory_Regions.size()-1; ++i) {
-        unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
-        unsigned long end       = (unsigned long)Memory_Regions[i].end_;
-
-        for (unsigned long i = begin; i < end; i += 4) {
-            if(int val = Read<int>((void*)i)) {
-                if(val == value){
-                    std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
-                    matchedAddresses.push_back((void*)i);
-                }
-            }
-        }
+    template<typename T>
+    void VirtualMemoryWrapper::PrintMemoryValue(void *address, T value) {
+        
     }
-    return matchedAddresses;
-}
 } // namespace ProcessMemoryViewer

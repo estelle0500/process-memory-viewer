@@ -64,7 +64,28 @@ class VirtualMemoryWrapper {
       * */
     void *FindPattern(const char *data, const char *pattern);
 
-    std::vector<void*> FindValues(int value);
+    template<typename T>
+    void PrintMemoryValue(void* address, T value);
+
+    template<typename T>
+    std::vector<void *> FindValues(T value) {
+        std::vector<void*> matchedAddresses;
+        for (int i = 0; i < Memory_Regions.size()-1; ++i) {
+            unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
+            unsigned long end       = (unsigned long)Memory_Regions[i].end_;
+
+            for (unsigned long i = begin; i < end; i += sizeof(value)) {
+                if(int val = Read<T>((void*)i)) {
+                    if(val == value){
+                        //std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
+                        std::cout << (void*)i << "\t\t\t" << val << std::endl;
+                        matchedAddresses.push_back((void*)i);
+                    }
+                }
+            }
+        }
+        return matchedAddresses;
+    }
 
     /* Read process memory wrapper for different buffers */
     bool Read(void *address, void *buffer, size_t size);
