@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <vector>
 #include <sys/uio.h>
+#include <cmath>
 
 #include "MemoryRegion.h"
 
@@ -30,7 +31,7 @@ class VirtualMemoryWrapper {
       ssize_t num_bytes_read = process_vm_readv(process_id_, &local_iov, 1, &remote_iov, 1, 0);
 
       if (num_bytes_read != sizeof(T)) {
-          perror("VirtualMemoryWrapper : Read failed");
+          // perror("VirtualMemoryWrapper : Read failed");
       }
       return buffer;
     }
@@ -70,13 +71,15 @@ class VirtualMemoryWrapper {
     template<typename T>
     std::vector<void *> FindValues(T value) {
         std::vector<void*> matchedAddresses;
+
+        std::cout << "Address" << "\t\t\t\t" << "value" << std::endl;
         for (int i = 0; i < Memory_Regions.size()-1; ++i) {
             unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
             unsigned long end       = (unsigned long)Memory_Regions[i].end_;
 
             for (unsigned long i = begin; i < end; i += sizeof(value)) {
-                if(int val = Read<T>((void*)i)) {
-                    if(val == value){
+                if(T val = Read<T>((void*)i)) {
+                    if(fabs(val - value) < 0.01){
                         //std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
                         std::cout << (void*)i << "\t\t\t" << val << std::endl;
                         matchedAddresses.push_back((void*)i);
