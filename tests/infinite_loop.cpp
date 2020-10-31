@@ -9,8 +9,8 @@ int main() {
     const volatile int status = 0xDEAD;
     std::cout << (void*) &status << std::endl;
 
+    std::cout << "You're stuck here forever!" << std::endl;
     while (status == 0xDEAD) {
-        std::cout << "You're stuck here forever!" << std::endl;
         sleep(5);
     }
 

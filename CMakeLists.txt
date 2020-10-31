@@ -10,6 +10,7 @@ list(APPEND SOURCE_DIR_FILES "src/VirtualMemoryWrapper.cpp"
 add_executable(sequence tests/sequence.cpp)
 add_executable(counter tests/counter.cpp)
 add_executable(types tests/types.cpp)
+add_executable(infinite tests/infinite_loop.cpp)
 add_executable(process-memory-viewer MemoryExplorer.cpp ${SOURCE_DIR_FILES})
 
 
