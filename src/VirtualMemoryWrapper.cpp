@@ -113,6 +113,10 @@ void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
 
         bzero(buffer, chunksize);
 
+//        int val;
+//        std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t"
+//        << (val = Read<int>(reinterpret_cast<void *>(readaddr))) << "\t\t\t"
+//        <<  std::to_string(val) << "\n";
         if(Read((void*) readaddr, buffer, readsize)) {
             std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t" << Read<int>(reinterpret_cast<void *>(readaddr)) << "\t\t\t" << buffer << std::endl;
         }

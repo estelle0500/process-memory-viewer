@@ -72,6 +72,10 @@ namespace ProcessMemoryViewer {
             out_stream_ << "Region: " << mr->id << std::endl;
         } else if (command == "pause") {
             set_proc_run_state(memory_wrapper_.process_id(), false);
+        } else if (command == "setep") {
+            double ep;
+            input_stream >> ep;
+            memory_wrapper_.ep = ep;
         } else if (command == "printregion") {
             int region;
             input_stream >> region;
@@ -91,6 +95,10 @@ namespace ProcessMemoryViewer {
             float value;
             input_stream >> value;
             memory_wrapper_.SearchValue<float>(value);
+        } else if (command == "finddouble") {
+            float value;
+            input_stream >> value;
+            memory_wrapper_.SearchValue<double>(value);
         } else if (command == "kill" || command == "exit") {
             kill(memory_wrapper_.process_id(), SIGTERM);
             out_stream_ << "Child process has been terminated.\n" << std::endl;

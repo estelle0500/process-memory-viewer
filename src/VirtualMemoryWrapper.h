@@ -16,9 +16,9 @@ class VirtualMemoryWrapper {
     static constexpr char PATH_SEP[] = "/";
     static constexpr char MAPS_FILE[] = "maps";
   public:
-    uintptr_t va() const;                       // Current virtual address
-    uintptr_t last_va() const;                  // Last virtual address
     std::vector<MemoryRegion> Memory_Regions;   // Regions
+
+    double ep = 0.01;
 
     VirtualMemoryWrapper(pid_t process_id);
       
@@ -48,23 +48,7 @@ class VirtualMemoryWrapper {
       }
     }
 
-    /* Prints mapped memory regions on the heap and stack */
-    void PrintRegionInfo(std::ostream &os);
-
-    /* Returns that the process exists */
-    bool IsValid();
-
-    /* Returns that the wrapped process is still running */
-    bool IsRunning();
-
-    /* Find a pattern in memory
-      *
-      * usage:
-      *  find("\xFA\x00\x00\x00\x00\x22\x33\x44\x55\xDD\x34",
-        "x????xxxxxx")
-      * */
-    void *FindPattern(const char *data, const char *pattern);
-
+    /* Search addresses for "value" */
     template<typename T>
     std::vector<void *> SearchValue(T value) {
         std::vector<void*> matchedAddresses;
@@ -76,7 +60,7 @@ class VirtualMemoryWrapper {
 
             for (unsigned long i = begin; i < end; i += sizeof(value)) {
                 if(T val = Read<T>((void*)i)) {
-                    if(fabs(val - value) < 0.01){
+                    if(fabs(val - value) < ep){
                         //std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
                         std::cout << (void*)i << "\t\t\t" << val << std::endl;
                         matchedAddresses.push_back((void*)i);
@@ -87,7 +71,17 @@ class VirtualMemoryWrapper {
         return matchedAddresses;
     }
 
-    /* Read process memory wrapper for different buffers */
+    /* Prints mapped memory regions on the heap and stack */
+    void PrintRegionInfo(std::ostream &os);
+
+    /* Returns that the process exists */
+    bool IsValid();
+
+    /* Returns that the wrapped process is still running */
+    bool IsRunning();
+
+    /* Read process memory wrapper for different buffers
+     * TODO: remove this after presentation. */
     bool Read(void *address, void *buffer, size_t size);
 
     /* Replace active region maps */
