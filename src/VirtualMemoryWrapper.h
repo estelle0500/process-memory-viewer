@@ -78,7 +78,7 @@ class VirtualMemoryWrapper {
     bool IsRunning() const;
 
     /* Read process memory wrapper for different buffers */
-    std::vector<char> Read(void *address, size_t size) const;
+    std::vector<unsigned char> Read(void *address, size_t size) const;
 
     /* Replace active region maps */
     void ParseMaps();

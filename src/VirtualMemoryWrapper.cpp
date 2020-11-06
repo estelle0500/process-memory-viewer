@@ -74,8 +74,8 @@ bool VirtualMemoryWrapper::IsRunning() const {
     }
 }
 
-std::vector<char> VirtualMemoryWrapper::Read(void* address, size_t size) const {
-    std::vector<char> buffer(size);
+std::vector<unsigned char> VirtualMemoryWrapper::Read(void* address, size_t size) const {
+    std::vector<unsigned char> buffer(size);
     struct iovec local{&buffer[0], size};
     struct iovec remote{address, size};
     process_vm_readv(process_id_, &local, 1, &remote, 1, 0);
@@ -95,7 +95,7 @@ void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
     while (total) {
         size_t readsize = (total < chunksize) ? total : chunksize;
         void* readaddr = begin + (chunksize * chunk);
-        std::vector<char> buffer = Read(readaddr, readsize);
+        std::vector<unsigned char> buffer = Read(readaddr, readsize);
 
         std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t" << Read<int>(reinterpret_cast<void *>(readaddr)) 
                   << "\t\t\t" << std::string(buffer.begin(), buffer.end()) << std::endl;
