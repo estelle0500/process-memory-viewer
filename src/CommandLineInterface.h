@@ -18,4 +18,6 @@ class CommandLineInterface {
     VirtualMemoryWrapper &memory_wrapper_;
     std::ostream &out_stream_;
 };
+
+pid_t get_pid_from_name(std::string procName);
 } // namespace ProcessMemoryViewer
