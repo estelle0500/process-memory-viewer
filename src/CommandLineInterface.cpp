@@ -53,9 +53,10 @@ void CommandLineInterface::HandleInput(std::string input) {
     std::istringstream input_stream(input);
     std::string command;
     input_stream >> command;
+    memory_wrapper_.ParseMaps();
 
     if (command == "info") {
-        memory_wrapper_.PrintRegionInfo(out_stream_);
+        memory_wrapper_.PrintRegionInfo();
     } else if (command == "cont") {
         set_proc_run_state(memory_wrapper_.process_id(), true);
     } else if (command == "getpid") {
@@ -65,21 +66,19 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "getregion") {
         void *address;
         input_stream >> address;
-        ProcessMemoryViewer::MemoryRegion *mr = memory_wrapper_.GetRegionOfAddress(address);
-        out_stream_ << "Region: " << mr->id << std::endl;
+        const ProcessMemoryViewer::MemoryRegion &mr = memory_wrapper_.GetRegionOfAddress(address);
+        out_stream_ << "Region: " << mr.id << std::endl;
     } else if (command == "pause") {
         set_proc_run_state(memory_wrapper_.process_id(), false);
     } else if (command == "setep") {
         double ep;
         input_stream >> ep;
-        memory_wrapper_.ep = ep;
+        memory_wrapper_.set_ep(ep);
     } else if (command == "printregion" || command == "region") {
         int region;
         input_stream >> region;
         out_stream_ << "Printing region: " << region << std::endl;
         memory_wrapper_.PrintRegion(region, 4);
-    } else if (command == "printregions" || command == "regions") {
-        memory_wrapper_.PrintRegionBounds();
     } else if (command == "read") {
         void *address;
         input_stream >> address;

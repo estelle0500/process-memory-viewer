@@ -4,6 +4,7 @@
 #include <vector>
 #include <sys/uio.h>
 #include <cmath>
+#include <type_traits>
 
 #include "MemoryRegion.h"
 
@@ -15,11 +16,8 @@ class VirtualMemoryWrapper {
     static constexpr char PROC_DIRECTORY[] = "/proc";
     static constexpr char PATH_SEP[] = "/";
     static constexpr char MAPS_FILE[] = "maps";
+
   public:
-    std::vector<MemoryRegion> Memory_Regions;   // Regions
-
-    double ep = 0.01;
-
     VirtualMemoryWrapper(pid_t process_id);
       
     /* Read and return data at "address" */
@@ -51,28 +49,27 @@ class VirtualMemoryWrapper {
     /* Search addresses for "value" */
     template<typename T>
     std::vector<void *> SearchValue(T value) {
-        std::vector<void*> matchedAddresses;
+        std::vector<void*> matched_addresses;
 
         std::cout << "Address" << "\t\t\t\t" << "value" << std::endl;
-        for (int i = 0; i < Memory_Regions.size()-1; ++i) {
-            unsigned long begin     = (unsigned long)Memory_Regions[i].begin_;
-            unsigned long end       = (unsigned long)Memory_Regions[i].end_;
+        for (size_t i = 0; i < memory_regions_.size(); ++i) {
+            unsigned long begin     = (unsigned long) memory_regions_[i].begin_;
+            unsigned long end       = (unsigned long) memory_regions_[i].end_;
 
-            for (unsigned long i = begin; i < end; i += sizeof(value)) {
-                if(T val = Read<T>((void*)i)) {
-                    if(fabs(val - value) < ep){
-                        //std::cout << "Matched" << value << "at: \t " << (void*)i << std::endl;
-                        std::cout << (void*)i << "\t\t\t" << val << std::endl;
-                        matchedAddresses.push_back((void*)i);
-                    }
-                }
+            for (unsigned long addr = begin; addr < end; addr += sizeof(value)) {
+                T val = Read<T>((void*)addr);
+                if ((std::is_floating_point<T>::value && fabs(val - value) < ep)
+                    || val == value) {
+                    std::cout << (void*)addr << "\t\t\t" << val << std::endl;
+                    matched_addresses.push_back((void*)addr);
+                } 
             }
         }
-        return matchedAddresses;
+        return matched_addresses;
     }
 
-    /* Prints mapped memory regions on the heap and stack */
-    void PrintRegionInfo(std::ostream &os);
+    /* Prints mapped memory regions */
+    void PrintRegionInfo();
 
     /* Returns that the process exists */
     bool IsValid();
@@ -80,29 +77,29 @@ class VirtualMemoryWrapper {
     /* Returns that the wrapped process is still running */
     bool IsRunning();
 
-    /* Read process memory wrapper for different buffers
-     * TODO: remove this after presentation. */
+    /* Read process memory wrapper for different buffers */
     bool Read(void *address, void *buffer, size_t size);
 
     /* Replace active region maps */
     void ParseMaps();
 
     /* Returns region of a given memory address */
-    MemoryRegion *GetRegionOfAddress(void *address);
+    const MemoryRegion& GetRegionOfAddress(void *address);
 
     /* Print all variables in a region */
     void PrintRegion(int index, size_t buffer_size);
-
-    /* Print all region start & end addresses */
-    void PrintRegionBounds();
 
     pid_t process_id() const {
         return process_id_;
     }
 
+    void set_ep(double new_ep) {
+        ep = new_ep;
+    }
+
   private:
     const pid_t process_id_;
-
-    std::vector<MemoryRegion> GetMappedMemory();
+    double ep = 0.01;
+    std::vector<MemoryRegion> memory_regions_;
 };
 } // namespace ProcessMemoryViewer
