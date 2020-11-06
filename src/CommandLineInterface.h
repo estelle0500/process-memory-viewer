@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "VirtualMemoryWrapper.h"
+#include "MemorySnapshot.h"
 
 namespace ProcessMemoryViewer {
 class CommandLineInterface {
@@ -17,6 +18,7 @@ class CommandLineInterface {
   private:
     VirtualMemoryWrapper &memory_wrapper_;
     std::ostream &out_stream_;
+    MemorySnapshotManager snapshot_manager_;
 };
 
 pid_t get_pid_from_name(std::string procName);

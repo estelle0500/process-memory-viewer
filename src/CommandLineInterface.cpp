@@ -104,6 +104,13 @@ void CommandLineInterface::HandleInput(std::string input) {
         int value;
         input_stream >> address >> value;
         memory_wrapper_.Write<int>(address, value);
+    } else if (command == "snapshot") {
+        unsigned int snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
+        out_stream_ << "Saved snapshot with id " << snapshot_id << std::endl;
+    } else if (command == "compare") {
+        unsigned int old_snapshot_id, new_snapshot_id;
+        input_stream >> old_snapshot_id >> new_snapshot_id;
+        snapshot_manager_.PrintComparison(old_snapshot_id, new_snapshot_id);
     } else {
         out_stream_ << "Unrecognized command" << std::endl;
     }
