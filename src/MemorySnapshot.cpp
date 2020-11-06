@@ -15,7 +15,7 @@ MemorySnapshot::MemorySnapshot(const VirtualMemoryWrapper &memory_wrapper) {
     }
 }
 
-void PrintDifferencesInRegion(void*, const std::vector<char>&, const std::vector<char>&);
+void PrintDifferencesInRegion(void*, const std::vector<unsigned char>&, const std::vector<unsigned char>&);
 
 void MemorySnapshot::PrintAddressDifferences(const MemorySnapshot &other_snapshot) const {
     for (const auto &record : memory_) {
@@ -28,7 +28,7 @@ void MemorySnapshot::PrintAddressDifferences(const MemorySnapshot &other_snapsho
             continue;
         }
 
-        const std::vector<char> other_record_buf = other_snapshot.memory_.at(addr_start);
+        const std::vector<unsigned char> other_record_buf = other_snapshot.memory_.at(addr_start);
         PrintDifferencesInRegion(addr_start, record.second, other_record_buf);
     }
 
@@ -43,19 +43,41 @@ void MemorySnapshot::PrintAddressDifferences(const MemorySnapshot &other_snapsho
     }
 }
 
-void PrintDifferencesInRegion(void *addr_start, const std::vector<char> &buffer, 
-                              const std::vector<char> &other_buffer) {
+void PrintDifferencesInRegion(void *addr_start, const std::vector<unsigned char> &buffer, 
+                              const std::vector<unsigned char> &other_buffer) {
     using std::cout;
     constexpr size_t BUFFER_SIZE = 256;
     char print_buffer[BUFFER_SIZE];
 
     for (size_t i = 0; i < buffer.size(); ++i) {
         if (buffer[i] != other_buffer[i]) {
+            unsigned old_value = static_cast<unsigned>(buffer[i]);
+            unsigned new_value = static_cast<unsigned>(other_buffer[i]);
             snprintf(print_buffer, BUFFER_SIZE,
                     "Modified at address %p, Old value: 0x%.2x, New value: 0x%.2x\n" ,
-                     (char*) addr_start + i, buffer[i], other_buffer[i]);
+                     (char*) addr_start + i, old_value, new_value);
             cout << print_buffer;
         }
     }
+}
+
+unsigned int MemorySnapshotManager::SaveSnapshot(const VirtualMemoryWrapper &memory_wrapper) {
+    unsigned int id = snapshots_.size();
+    snapshots_.emplace_back(MemorySnapshot(memory_wrapper));
+    return id;
+}
+
+void MemorySnapshotManager::PrintComparison(unsigned int old_snapshot_id, unsigned int new_snapshot_id) {
+    if (old_snapshot_id >= snapshots_.size()) {
+        std::cout << "Invalid id for old snapshot" << std::endl;
+        return;
+    } else if (new_snapshot_id >= snapshots_.size()) {
+        std::cout << "Invalid id for new snapshot" << std::endl;
+        return;
+    }
+
+    const MemorySnapshot &old_snapshot = snapshots_.at(old_snapshot_id);
+    const MemorySnapshot &new_snapshot = snapshots_.at(new_snapshot_id);
+    old_snapshot.PrintAddressDifferences(new_snapshot);
 }
 } // namespace ProcessMemoryViewer
