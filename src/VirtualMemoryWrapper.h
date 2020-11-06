@@ -69,16 +69,16 @@ class VirtualMemoryWrapper {
     }
 
     /* Prints mapped memory regions */
-    void PrintRegionInfo();
+    void PrintRegionInfo() const;
 
     /* Returns that the process exists */
-    bool IsValid();
+    bool IsValid() const;
 
     /* Returns that the wrapped process is still running */
-    bool IsRunning();
+    bool IsRunning() const;
 
     /* Read process memory wrapper for different buffers */
-    bool Read(void *address, void *buffer, size_t size);
+    std::vector<char> Read(void *address, size_t size) const;
 
     /* Replace active region maps */
     void ParseMaps();
@@ -91,6 +91,10 @@ class VirtualMemoryWrapper {
 
     pid_t process_id() const {
         return process_id_;
+    }
+
+    const std::vector<MemoryRegion>& memory_regions() const {
+        return memory_regions_;
     }
 
     void set_ep(double new_ep) {

@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 list(APPEND SOURCE_DIR_FILES "src/VirtualMemoryWrapper.cpp"
                              "src/MemoryRegion.cpp"
-                             "src/CommandLineInterface.cpp")
+                             "src/CommandLineInterface.cpp"
+                             "src/MemorySnapshot.cpp")
 
 add_executable(sequence tests/sequence.cpp)
 add_executable(counter tests/counter.cpp)

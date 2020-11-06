@@ -23,7 +23,7 @@ const MemoryRegion& VirtualMemoryWrapper::GetRegionOfAddress(void* address){
     }
 }
 
-void VirtualMemoryWrapper::PrintRegionInfo() {
+void VirtualMemoryWrapper::PrintRegionInfo() const {
     for (size_t i = 0; i < memory_regions_.size(); i++) {
         std::cout << "Checking region " << i << ": " << std::endl;
         std::cout << memory_regions_[i] << std::endl;
@@ -60,11 +60,11 @@ void VirtualMemoryWrapper::ParseMaps(){
     }
 }
 
-bool VirtualMemoryWrapper::IsValid() {
+bool VirtualMemoryWrapper::IsValid() const {
     return process_id_ != -1;
 }
 
-bool VirtualMemoryWrapper::IsRunning() {
+bool VirtualMemoryWrapper::IsRunning() const {
     if (!IsValid()){
         return false;
     }
@@ -74,17 +74,19 @@ bool VirtualMemoryWrapper::IsRunning() {
     }
 }
 
-bool VirtualMemoryWrapper::Read(void* address, void* buffer, size_t size) {
-    struct iovec local{buffer, size};
+std::vector<char> VirtualMemoryWrapper::Read(void* address, size_t size) const {
+    std::vector<char> buffer(size);
+    struct iovec local{&buffer[0], size};
     struct iovec remote{address, size};
-    return (process_vm_readv(process_id_, &local, 1, &remote, 1, 0) == size);
+    process_vm_readv(process_id_, &local, 1, &remote, 1, 0);
+    return buffer;
 }
 
 void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
-    unsigned long begin = (unsigned long)memory_regions_[index].begin_;
-    unsigned long end = (unsigned long)memory_regions_[index].end_;
-    char buffer[buffer_size];
-    size_t chunksize = sizeof(buffer);
+    char *begin = (char*) memory_regions_[index].begin_;
+    char *end = (char*) memory_regions_[index].end_;
+
+    size_t chunksize = buffer_size;
     size_t total = end - begin;
     size_t chunk = 0;
 
@@ -92,18 +94,11 @@ void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
 
     while (total) {
         size_t readsize = (total < chunksize) ? total : chunksize;
-        size_t readaddr = begin + (chunksize * chunk);
+        void* readaddr = begin + (chunksize * chunk);
+        std::vector<char> buffer = Read(readaddr, readsize);
 
-        bzero(buffer, chunksize);
-
-//        int val;
-//        std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t"
-//        << (val = Read<int>(reinterpret_cast<void *>(readaddr))) << "\t\t\t"
-//        <<  std::to_string(val) << "\n";
-        if (Read((void*) readaddr, buffer, readsize)) {
-            std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t" << Read<int>(reinterpret_cast<void *>(readaddr)) << "\t\t\t" << buffer << std::endl;
-        }
-
+        std::cout << reinterpret_cast<void *>(readaddr) << ":\t\t\t" << Read<int>(reinterpret_cast<void *>(readaddr)) 
+                  << "\t\t\t" << std::string(buffer.begin(), buffer.end()) << std::endl;
         total -= readsize;
         chunk++;
     }
