@@ -11,6 +11,11 @@ int main() {
     int leet        = 1337;
     double l33t     = 1337.78;
 
+    double d1     = 1400.25;
+    double d2     = 1400.50;
+    double d3     = 1400.75;
+    double d4     = 1400.39;
+
     std::cout << "Types started: find 1337!" << std::endl;
     std::cout << f1 << "\t\t" << &f1 << "\n";
     std::cout << f2 << "\t\t" << &f2 << "\n";

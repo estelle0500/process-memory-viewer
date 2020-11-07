@@ -28,6 +28,12 @@ class MemorySnapshotManager {
        Returns an id that can be used to refer to the snapshot */
     unsigned int SaveSnapshot(const VirtualMemoryWrapper &memory_wrapper);
 
+    /* Remove a snapshot given the current id */
+    void DeleteSnapshot(unsigned int id);
+
+    /* Returns the amount of snapshots saved */
+    int GetSize();
+
     /* Compare old and new snapshots */
     void PrintComparison(unsigned int old_snapshot_id, unsigned int new_snapshot_id);
 

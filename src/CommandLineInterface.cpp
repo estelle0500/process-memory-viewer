@@ -107,10 +107,30 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "snapshot") {
         unsigned int snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
         out_stream_ << "Saved snapshot with id " << snapshot_id << std::endl;
+    } else if (command == "deletesnapshot"){
+        unsigned int snapshot_id;
+        input_stream >> snapshot_id;
+        snapshot_manager_.DeleteSnapshot(snapshot_id);
+        out_stream_ << "Removed snapshot with id " << snapshot_id << std::endl;
     } else if (command == "compare") {
         unsigned int old_snapshot_id, new_snapshot_id;
         input_stream >> old_snapshot_id >> new_snapshot_id;
+
+        bool compare_current = (!new_snapshot_id);
+        if(compare_current){
+            if(!snapshot_manager_.GetSize()){
+                out_stream_ << "Use 'snapshot' to save a snapshot to compare. " << std::endl;
+                return;
+            }
+            new_snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
+        }
+
         snapshot_manager_.PrintComparison(old_snapshot_id, new_snapshot_id);
+
+        if(compare_current){
+            snapshot_manager_.DeleteSnapshot(new_snapshot_id);
+            new_snapshot_id = NULL;
+        }
     } else {
         out_stream_ << "Unrecognized command" << std::endl;
     }

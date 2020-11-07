@@ -80,4 +80,17 @@ void MemorySnapshotManager::PrintComparison(unsigned int old_snapshot_id, unsign
     const MemorySnapshot &new_snapshot = snapshots_.at(new_snapshot_id);
     old_snapshot.PrintAddressDifferences(new_snapshot);
 }
+
+    void MemorySnapshotManager::DeleteSnapshot(unsigned int id) {
+        if(id >= snapshots_.size()) {
+            std::cout << "Invalid id for snapshot" << std::endl;
+            return;
+        }
+
+        snapshots_.erase(snapshots_.cbegin() + id);
+    }
+
+    int MemorySnapshotManager::GetSize() {
+        return snapshots_.size();
+    }
 } // namespace ProcessMemoryViewer
