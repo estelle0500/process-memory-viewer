@@ -4,7 +4,8 @@
 #include <sys/wait.h>
 #include <fstream>
 
-#include "src/VirtualMemoryWrapper.h" 
+#include "src/VirtualMemoryWrapper.h"
+#include "src/Watchlist.h"
 #include "src/CommandLineInterface.h"
 
 using std::string;
@@ -26,7 +27,8 @@ int main(int argc, char* argv[]) {
 
     using namespace ProcessMemoryViewer;
     VirtualMemoryWrapper child_memory_wrapper(fork_code);
-    CommandLineInterface cli(child_memory_wrapper, cout);
+    Watchlist watchlist(child_memory_wrapper);
+    CommandLineInterface cli(child_memory_wrapper, cout, (Watchlist &) watchlist);
 
     while (true) {
         cout << "> ";

@@ -104,6 +104,15 @@ void CommandLineInterface::HandleInput(std::string input) {
         int value;
         input_stream >> address >> value;
         memory_wrapper_.Write<int>(address, value);
+    } else if (command == "watch") {
+        void* address;
+        input_stream >> address;
+        if(address){
+            watchlist_.Add(address);
+            address = NULL;
+        } else {
+            watchlist_.Print();
+        }
     } else if (command == "snapshot") {
         unsigned int snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
         out_stream_ << "Saved snapshot with id " << snapshot_id << std::endl;
