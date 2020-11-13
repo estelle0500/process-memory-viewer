@@ -2,7 +2,6 @@
 
 #include <dirent.h>         // For DIR
 #include <sys/types.h>
-#include <signal.h>
 #include <fstream>
 
 namespace ProcessMemoryViewer {
@@ -45,11 +44,9 @@ pid_t get_pid_from_name(std::string procName) {
     return pid;
 }
 
-void set_proc_run_state(pid_t pid, bool running = true) {
-    kill(pid, running ? SIGCONT : SIGSTOP);
-}
-
 void CommandLineInterface::HandleInput(std::string input) {
+    using std::cout;
+
     std::istringstream input_stream(input);
     std::string command;
     input_stream >> command;
@@ -59,29 +56,29 @@ void CommandLineInterface::HandleInput(std::string input) {
     if (command == "info") {
         memory_wrapper_.PrintRegionInfo();
     } else if (command == "cont") {
-        set_proc_run_state(memory_wrapper_.process_id(), true);
+        tracer_.Continue();
     } else if (command == "getpid") {
         std::string name;
         input_stream >> name;
-        out_stream_ << get_pid_from_name(name) << std::endl;
+        cout << get_pid_from_name(name) << std::endl;
     } else if (command == "getregion") {
         void *address;
         input_stream >> address;
         const ProcessMemoryViewer::MemoryRegion &mr = memory_wrapper_.GetRegionOfAddress(address);
-        out_stream_ << "Region: " << mr.id << std::endl;
+        cout << "Region: " << mr.id << std::endl;
     } else if (command == "pause") {
-        set_proc_run_state(memory_wrapper_.process_id(), false);
+        tracer_.Pause();
     } else if (command == "setep") {
         input_stream >> eps_;
     } else if (command == "printregion" || command == "region") {
         int region;
         input_stream >> region;
-        out_stream_ << "Printing region: " << region << std::endl;
+        cout << "Printing region: " << region << std::endl;
         memory_wrapper_.PrintRegion(region, 4);
     } else if (command == "read") {
         void *address;
         input_stream >> address;
-        out_stream_ << memory_wrapper_.Read<int>(address) << std::endl;
+        cout << memory_wrapper_.Read<int>(address) << std::endl;
     } else if (command == "findint" || command == "find") {
         int value;
         input_stream >> value;
@@ -95,9 +92,8 @@ void CommandLineInterface::HandleInput(std::string input) {
         input_stream >> value;
         current.SearchValue<double>(value, eps_);
     } else if (command == "kill" || command == "exit") {
-        kill(memory_wrapper_.process_id(), SIGTERM);
-        out_stream_ << "Child process has been terminated.\n" << std::endl;
-        exit(1);
+        tracer_.Kill();
+        exit(0);
     } else if (command == "writeint" || command == "write") {
         void *address;
         int value;
@@ -114,32 +110,28 @@ void CommandLineInterface::HandleInput(std::string input) {
         }
     } else if (command == "snapshot") {
         unsigned int snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
-        out_stream_ << "Saved snapshot with id " << snapshot_id << std::endl;
+        cout << "Saved snapshot with id " << snapshot_id << std::endl;
     } else if (command == "deletesnapshot"){
         unsigned int snapshot_id;
         input_stream >> snapshot_id;
         snapshot_manager_.DeleteSnapshot(snapshot_id);
-        out_stream_ << "Removed snapshot with id " << snapshot_id << std::endl;
+        cout << "Removed snapshot with id " << snapshot_id << std::endl;
     } else if (command == "compare") {
         unsigned int old_snapshot_id, new_snapshot_id;
         input_stream >> old_snapshot_id >> new_snapshot_id;
 
-        bool compare_current = (!new_snapshot_id);
-        if(compare_current){
-            if(!snapshot_manager_.GetSize()){
-                out_stream_ << "Use 'snapshot' to save a snapshot to compare. " << std::endl;
-                return;
-            }
+        bool compare_current = input_stream.fail(); // Assume it failed because only the old snapshot id provided
+        if (compare_current) {
             new_snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
         }
 
         snapshot_manager_.PrintComparison(old_snapshot_id, new_snapshot_id);
 
-        if(compare_current){
+        if (compare_current) {
             snapshot_manager_.DeleteSnapshot(new_snapshot_id);
         }
     } else {
-        out_stream_ << "Unrecognized command" << std::endl;
+        cout << "Unrecognized command" << std::endl;
     }
 }
 } // namespace ProcessMemoryViewer

@@ -7,20 +7,22 @@
 #include "memory/VirtualMemoryWrapper.h"
 #include "memory/MemorySnapshot.h"
 #include "Watchlist.h"
+#include "ProcessTracer.h"
 
 namespace ProcessMemoryViewer {
 class CommandLineInterface {
   public:
-    CommandLineInterface(VirtualMemoryWrapper &memory_wrapper, std::ostream &out_stream, Watchlist &watchlist)
-        : memory_wrapper_(memory_wrapper), out_stream_(out_stream), watchlist_(watchlist) {}
+    CommandLineInterface(VirtualMemoryWrapper &memory_wrapper, Watchlist &watchlist, ProcessTracer &tracer)
+        : memory_wrapper_(memory_wrapper), watchlist_(watchlist), tracer_(tracer) {}
 
     void HandleInput(std::string input);
 
   private:
     VirtualMemoryWrapper &memory_wrapper_;
-    std::ostream &out_stream_;
     MemorySnapshotManager snapshot_manager_;
     Watchlist &watchlist_;
+    ProcessTracer &tracer_;
+
     double eps_ = 0;
 };
 
