@@ -3,10 +3,10 @@ project(process-memory-viewer)
 
 set(CMAKE_CXX_STANDARD 20)
 
-list(APPEND SOURCE_DIR_FILES "src/VirtualMemoryWrapper.cpp"
-                             "src/MemoryRegion.cpp"
+list(APPEND SOURCE_DIR_FILES "src/memory/VirtualMemoryWrapper.cpp"
+                             "src/memory/MemoryRegion.cpp"
+                             "src/memory/MemorySnapshot.cpp"
                              "src/CommandLineInterface.cpp"
-                             "src/MemorySnapshot.cpp"
                              "src/Watchlist.cpp")
 
 add_executable(sequence tests/sequence.cpp)

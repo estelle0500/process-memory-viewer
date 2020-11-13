@@ -3,6 +3,7 @@
 //
 
 #include "Watchlist.h"
+#include <algorithm>
 
 namespace ProcessMemoryViewer {
 

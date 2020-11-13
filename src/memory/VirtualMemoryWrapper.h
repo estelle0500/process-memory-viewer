@@ -46,28 +46,6 @@ class VirtualMemoryWrapper {
       }
     }
 
-    /* Search addresses for "value" */
-    template<typename T>
-    std::vector<void *> SearchValue(T value) {
-        std::vector<void*> matched_addresses;
-
-        std::cout << "Address" << "\t\t\t\t" << "value" << std::endl;
-        for (size_t i = 0; i < memory_regions_.size(); ++i) {
-            unsigned long begin     = (unsigned long) memory_regions_[i].begin_;
-            unsigned long end       = (unsigned long) memory_regions_[i].end_;
-
-            for (unsigned long addr = begin; addr < end; addr += sizeof(value)) {
-                T val = Read<T>((void*)addr);
-                if ((std::is_floating_point<T>::value && fabs(val - value) < ep)
-                    || val == value) {
-                    std::cout << (void*)addr << "\t\t\t" << val << std::endl;
-                    matched_addresses.push_back((void*)addr);
-                } 
-            }
-        }
-        return matched_addresses;
-    }
-
     /* Prints mapped memory regions */
     void PrintRegionInfo() const;
 
@@ -97,13 +75,8 @@ class VirtualMemoryWrapper {
         return memory_regions_;
     }
 
-    void set_ep(double new_ep) {
-        ep = new_ep;
-    }
-
   private:
     const pid_t process_id_;
-    double ep = 0.01;
     std::vector<MemoryRegion> memory_regions_;
 };
 } // namespace ProcessMemoryViewer

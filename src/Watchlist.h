@@ -1,5 +1,5 @@
 #include <vector>
-#include "VirtualMemoryWrapper.h"
+#include "memory/VirtualMemoryWrapper.h"
 #include <memory>
 
 #ifndef PROCESS_MEMORY_VIEWER_WATCHLIST_H

@@ -54,6 +54,7 @@ void CommandLineInterface::HandleInput(std::string input) {
     std::string command;
     input_stream >> command;
     memory_wrapper_.ParseMaps();
+    MemorySnapshot current(memory_wrapper_);
 
     if (command == "info") {
         memory_wrapper_.PrintRegionInfo();
@@ -71,9 +72,7 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "pause") {
         set_proc_run_state(memory_wrapper_.process_id(), false);
     } else if (command == "setep") {
-        double ep;
-        input_stream >> ep;
-        memory_wrapper_.set_ep(ep);
+        input_stream >> eps_;
     } else if (command == "printregion" || command == "region") {
         int region;
         input_stream >> region;
@@ -86,15 +85,15 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "findint" || command == "find") {
         int value;
         input_stream >> value;
-        memory_wrapper_.SearchValue<int>(value);
+        current.SearchValue<int>(value);
     } else if (command == "findfloat") {
         float value;
         input_stream >> value;
-        memory_wrapper_.SearchValue<float>(value);
+        current.SearchValue<float>(value, eps_);
     } else if (command == "finddouble") {
         float value;
         input_stream >> value;
-        memory_wrapper_.SearchValue<double>(value);
+        current.SearchValue<double>(value, eps_);
     } else if (command == "kill" || command == "exit") {
         kill(memory_wrapper_.process_id(), SIGTERM);
         out_stream_ << "Child process has been terminated.\n" << std::endl;
@@ -138,7 +137,6 @@ void CommandLineInterface::HandleInput(std::string input) {
 
         if(compare_current){
             snapshot_manager_.DeleteSnapshot(new_snapshot_id);
-            new_snapshot_id = NULL;
         }
     } else {
         out_stream_ << "Unrecognized command" << std::endl;

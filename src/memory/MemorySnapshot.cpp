@@ -2,15 +2,15 @@
 
 namespace ProcessMemoryViewer {
 MemorySnapshot::MemorySnapshot(const VirtualMemoryWrapper &memory_wrapper) {
+    PAGE_SIZE = sysconf(_SC_PAGE_SIZE);
     auto regions = memory_wrapper.memory_regions();
-    size_t page_size = sysconf(_SC_PAGE_SIZE);
 
     for (const auto &region : regions) {
         size_t size = (size_t)((char*) region.end_ - (char*) region.begin_);
 
-        for (size_t i = 0; i < size / page_size; ++i) {
-            void *page_start = (char*) region.begin_ + i * page_size;
-            memory_.emplace(page_start, memory_wrapper.Read(page_start, page_size));
+        for (size_t i = 0; i < size / PAGE_SIZE; ++i) {
+            void *page_start = (char*) region.begin_ + i * PAGE_SIZE;
+            memory_.emplace(page_start, memory_wrapper.Read(page_start, PAGE_SIZE));
         }
     }
 }
@@ -81,16 +81,16 @@ void MemorySnapshotManager::PrintComparison(unsigned int old_snapshot_id, unsign
     old_snapshot.PrintAddressDifferences(new_snapshot);
 }
 
-    void MemorySnapshotManager::DeleteSnapshot(unsigned int id) {
-        if(id >= snapshots_.size()) {
-            std::cout << "Invalid id for snapshot" << std::endl;
-            return;
-        }
-
-        snapshots_.erase(snapshots_.cbegin() + id);
+void MemorySnapshotManager::DeleteSnapshot(unsigned int id) {
+    if (id >= snapshots_.size()) {
+        std::cout << "Invalid id for snapshot" << std::endl;
+        return;
     }
 
-    int MemorySnapshotManager::GetSize() {
-        return snapshots_.size();
-    }
+    snapshots_.erase(snapshots_.begin() + id);
+}
+
+int MemorySnapshotManager::GetSize() {
+    return snapshots_.size();
+}
 } // namespace ProcessMemoryViewer

@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <fstream>
 
-#include "src/VirtualMemoryWrapper.h"
+#include "src/memory/VirtualMemoryWrapper.h"
 #include "src/Watchlist.h"
 #include "src/CommandLineInterface.h"
 
