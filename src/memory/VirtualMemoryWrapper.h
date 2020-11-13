@@ -1,8 +1,8 @@
 #pragma once
 
 #include <unistd.h>
-#include <vector>
 #include <sys/uio.h>
+#include <vector>
 #include <cmath>
 #include <type_traits>
 
@@ -34,6 +34,9 @@ class VirtualMemoryWrapper {
       return buffer;
     }
 
+    /* Read process memory wrapper for different buffers */
+    std::vector<unsigned char> Read(void *address, size_t size) const;
+
     /* Write data at "address" */
     template <class T>
     void Write(void *address, T data) {
@@ -49,15 +52,6 @@ class VirtualMemoryWrapper {
     /* Prints mapped memory regions */
     void PrintRegionInfo() const;
 
-    /* Returns that the process exists */
-    bool IsValid() const;
-
-    /* Returns that the wrapped process is still running */
-    bool IsRunning() const;
-
-    /* Read process memory wrapper for different buffers */
-    std::vector<unsigned char> Read(void *address, size_t size) const;
-
     /* Replace active region maps */
     void ParseMaps();
 
@@ -66,10 +60,6 @@ class VirtualMemoryWrapper {
 
     /* Print all variables in a region */
     void PrintRegion(int index, size_t buffer_size);
-
-    pid_t process_id() const {
-        return process_id_;
-    }
 
     const std::vector<MemoryRegion>& memory_regions() const {
         return memory_regions_;

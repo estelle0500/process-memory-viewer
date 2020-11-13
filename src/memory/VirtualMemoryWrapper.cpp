@@ -60,20 +60,6 @@ void VirtualMemoryWrapper::ParseMaps(){
     }
 }
 
-bool VirtualMemoryWrapper::IsValid() const {
-    return process_id_ != -1;
-}
-
-bool VirtualMemoryWrapper::IsRunning() const {
-    if (!IsValid()){
-        return false;
-    }
-    struct stat sts;
-    if (stat((("/proc/" + process_id_)), &sts) != -1) {
-        return false;
-    }
-}
-
 std::vector<unsigned char> VirtualMemoryWrapper::Read(void* address, size_t size) const {
     std::vector<unsigned char> buffer(size);
     struct iovec local{&buffer[0], size};

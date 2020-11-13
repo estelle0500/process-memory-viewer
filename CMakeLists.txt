@@ -7,7 +7,8 @@ list(APPEND SOURCE_DIR_FILES "src/memory/VirtualMemoryWrapper.cpp"
                              "src/memory/MemoryRegion.cpp"
                              "src/memory/MemorySnapshot.cpp"
                              "src/CommandLineInterface.cpp"
-                             "src/Watchlist.cpp")
+                             "src/Watchlist.cpp"
+                             "src/ProcessTracer.cpp")
 
 add_executable(sequence tests/sequence.cpp)
 add_executable(counter tests/counter.cpp)

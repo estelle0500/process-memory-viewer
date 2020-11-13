@@ -7,6 +7,7 @@
 #include "src/memory/VirtualMemoryWrapper.h"
 #include "src/Watchlist.h"
 #include "src/CommandLineInterface.h"
+#include "src/ProcessTracer.h"
 
 using std::string;
 using std::cin;
@@ -18,17 +19,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int fork_code = fork();
-    if (fork_code == 0) { // Child
-        execvp(argv[1], &argv[1]);
-        return 1;
-    }
-    cout << "Process started with PID: " << fork_code << std::endl;
-
     using namespace ProcessMemoryViewer;
-    VirtualMemoryWrapper child_memory_wrapper(fork_code);
+    ProcessTracer tracer;
+    tracer.Start(argv[1], argv + 1);
+
+    VirtualMemoryWrapper child_memory_wrapper(tracer.pid());
     Watchlist watchlist(child_memory_wrapper);
-    CommandLineInterface cli(child_memory_wrapper, cout, (Watchlist &) watchlist);
+    CommandLineInterface cli(child_memory_wrapper, watchlist, tracer);
 
     while (true) {
         cout << "> ";
@@ -43,8 +40,6 @@ int main(int argc, char* argv[]) {
         cli.HandleInput(input);
     }
 
-    int child_status;
-    kill(fork_code, SIGTERM);
-    wait(&child_status);
+    tracer.Kill();
     return 0;
 }
