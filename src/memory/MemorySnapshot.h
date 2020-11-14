@@ -95,7 +95,7 @@ namespace ProcessMemoryViewer {
         int GetSize() { return addresses.size(); };
 
         /* Checks if there are any results */
-        bool IsEmpty() { return addresses.empty(); }
+        bool IsEmpty() { return values.empty() || addresses.empty(); }
 
         /* Gets the stored value based on an index from the address */
         search_value GetValue(void *addr){
@@ -192,7 +192,6 @@ class MemorySnapshot {
 
                 if ((std::is_floating_point<T>::value && fabs(val - value) < eps)
                     || val == value) {
-                    std::cout << "found value" << val << std::endl;
                     void *addr = base_addr + offset;
                     res.addresses.push_back(addr);
 

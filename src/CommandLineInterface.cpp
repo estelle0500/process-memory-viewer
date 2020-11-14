@@ -94,6 +94,8 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
         exit(0);
+    } else if (command == "last") {
+        current.last_result->Print();
     } else if (command == "nextint") {
 
     } else if (command == "writeint" || command == "write") {
@@ -102,13 +104,25 @@ void CommandLineInterface::HandleInput(std::string input) {
         input_stream >> address >> value;
         memory_wrapper_.Write<int>(address, value);
     } else if (command == "watch") {
+        if(command == input){
+            watchlist_.Print();
+            return;
+        }
+        if(input.find("last") != std::string::npos){
+            if(&(current.last_result->addresses) < (void*)0x2000000){
+                cout << "No Last Search" << std::endl;
+                return;
+            }
+            for (int i = 0; i < current.last_result->GetSize(); ++i) {
+                watchlist_.Add(current.last_result->addresses.at(i));
+            }
+            return;
+        }
         void* address;
         input_stream >> address;
         if(address){
             watchlist_.Add(address);
             address = NULL;
-        } else {
-            watchlist_.Print();
         }
     } else if (command == "snapshot") {
         unsigned int snapshot_id = snapshot_manager_.SaveSnapshot(memory_wrapper_);
