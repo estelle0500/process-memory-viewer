@@ -87,6 +87,6 @@ void ProcessTracer::Pause() {
 }
 
 void ProcessTracer::Continue() {
-    kill(pid_, SIGCONT);
+    ptrace(PTRACE_CONT, pid_, 0, 0);
 }
 } // namespace ProcessMemoryViewer
