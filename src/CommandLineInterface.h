@@ -23,7 +23,7 @@ class CommandLineInterface {
     Watchlist &watchlist_;
     ProcessTracer &tracer_;
 
-    double eps_ = 0;
+    double eps_ = 0.01;
 };
 
 pid_t get_pid_from_name(std::string procName);

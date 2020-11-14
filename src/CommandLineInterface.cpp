@@ -82,18 +82,20 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "findint" || command == "find") {
         int value;
         input_stream >> value;
-        current.SearchValue<int>(value);
+        current.SearchValue<int>(value, 0.0, VALUE_S32);
     } else if (command == "findfloat") {
         float value;
         input_stream >> value;
-        current.SearchValue<float>(value, eps_);
+        current.SearchValue<float>(value, eps_, VALUE_F32);
     } else if (command == "finddouble") {
         float value;
         input_stream >> value;
-        current.SearchValue<double>(value, eps_);
+        current.SearchValue<double>(value, eps_, VALUE_F64);
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
         exit(0);
+    } else if (command == "nextint") {
+
     } else if (command == "writeint" || command == "write") {
         void *address;
         int value;

@@ -1,7 +1,3 @@
-//
-// Created by tyler on 11/6/20.
-//
-
 #include "Watchlist.h"
 #include <algorithm>
 
