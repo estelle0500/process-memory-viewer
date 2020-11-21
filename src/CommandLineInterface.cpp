@@ -50,6 +50,11 @@ void CommandLineInterface::HandleInput(std::string input) {
     std::istringstream input_stream(input);
     std::string command;
     input_stream >> command;
+
+    if (!tracer_.IsRunning()) {
+        printf("Child process has stopped\n");
+        exit(0);
+    }
     memory_wrapper_.ParseMaps();
     MemorySnapshot current(memory_wrapper_);
 
@@ -146,6 +151,12 @@ void CommandLineInterface::HandleInput(std::string input) {
         if (compare_current) {
             snapshot_manager_.DeleteSnapshot(new_snapshot_id);
         }
+    } else if (command == "run") {
+        tracer_.Run();
+    } else if (command == "step") {
+        size_t num_steps = 1;
+        input_stream >> num_steps;
+        tracer_.SingleStep(num_steps);
     } else {
         cout << "Unrecognized command" << std::endl;
     }

@@ -6,8 +6,14 @@ namespace ProcessMemoryViewer {
 /* Manages the child process and sends signal */
 class ProcessTracer {
   public:
-    /* Starts a child process that will exec the executable */
+    /* Creates a child process that will exec the executable */
     void Start(char *executable_name, char **args);
+
+    /* Runs the child process */
+    void Run();
+
+    /* Single steps the child process */
+    void SingleStep(size_t num_steps);
 
     /* Returns that the process exists */
     bool IsValid() const;

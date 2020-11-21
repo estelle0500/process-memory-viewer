@@ -38,7 +38,7 @@ void VirtualMemoryWrapper::ParseMaps(){
     const std::string maps_filepath = oss.str();
     std::ifstream maps_stream(maps_filepath);
 
-    for (size_t count = 0; ; ++count) {
+    for (size_t count = 0; maps_stream.good(); ++count) {
         std::string line;
         getline(maps_stream, line);
         if (maps_stream.eof()) {
