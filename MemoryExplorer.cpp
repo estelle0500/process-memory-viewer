@@ -21,11 +21,13 @@ int main(int argc, char* argv[]) {
 
     using namespace ProcessMemoryViewer;
     ProcessTracer tracer;
+
     tracer.Start(argv[1], argv + 1);
 
     VirtualMemoryWrapper child_memory_wrapper(tracer.pid());
     Watchlist watchlist(child_memory_wrapper);
-    CommandLineInterface cli(child_memory_wrapper, watchlist, tracer);
+    History history(child_memory_wrapper);
+    CommandLineInterface cli(child_memory_wrapper, watchlist, tracer, history);
 
     while (true) {
         cout << "> ";

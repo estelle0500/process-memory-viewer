@@ -2,8 +2,6 @@
 #include <algorithm>
 
 namespace ProcessMemoryViewer {
-
-
     void Watchlist::Print() {
         for (int i = 0; i < addresses_.size(); ++i) {
             PrintAddress(i);

@@ -8,12 +8,16 @@
 #include "memory/MemorySnapshot.h"
 #include "Watchlist.h"
 #include "ProcessTracer.h"
+#include "memory/MemoryHistory.h"
 
 namespace ProcessMemoryViewer {
-class CommandLineInterface {
+    static double eps_ = 0.01;
+
+    class CommandLineInterface {
   public:
-    CommandLineInterface(VirtualMemoryWrapper &memory_wrapper, Watchlist &watchlist, ProcessTracer &tracer)
-        : memory_wrapper_(memory_wrapper), watchlist_(watchlist), tracer_(tracer) {}
+    CommandLineInterface(VirtualMemoryWrapper &memory_wrapper, Watchlist &watchlist, ProcessTracer &tracer,
+                         History &history)
+        : memory_wrapper_(memory_wrapper), watchlist_(watchlist), tracer_(tracer), history_(history) {}
 
     void HandleInput(std::string input);
 
@@ -22,8 +26,7 @@ class CommandLineInterface {
     MemorySnapshotManager snapshot_manager_;
     Watchlist &watchlist_;
     ProcessTracer &tracer_;
-
-    double eps_ = 0.01;
+    History &history_;
 };
 
 pid_t get_pid_from_name(std::string procName);
