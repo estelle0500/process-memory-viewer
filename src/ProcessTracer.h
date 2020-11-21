@@ -36,5 +36,7 @@ class ProcessTracer {
 
   private:
     pid_t pid_ = -1;
+
+    void *FindMainAddress();
 };
 } // namespace ProcessMemoryViewer

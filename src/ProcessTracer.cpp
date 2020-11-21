@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
+#include <sys/personality.h>
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>
@@ -14,8 +15,8 @@ namespace ProcessMemoryViewer {
 void ProcessTracer::Start(char *executable_name, char **args) {
     int fork_code = fork();
     if (fork_code == 0) { // Child
-        std::cout << "Trace me" << std::endl;
         ptrace(PTRACE_TRACEME, 0, NULL, 0);
+        personality(ADDR_NO_RANDOMIZE);
         execvp(executable_name, args);
         exit(1);
     }
@@ -26,31 +27,61 @@ void ProcessTracer::Start(char *executable_name, char **args) {
         perror("Couldn't wait on child process");
         exit(1);
     }
+
     std::cout << "Process started with PID: " << pid_ << std::endl;
+
+    // Replace instruction at `main` with a trapping instruction
+    void *main_address = FindMainAddress();
+    std::cout << main_address << std::endl;
+    long orig = ptrace(PTRACE_PEEKTEXT, pid_, main_address, NULL);
+    long trap = (orig & ~0xff) | 0xcc;
+    ptrace(PTRACE_POKETEXT, pid_, main_address, trap);
+
+    // Continue program until just before main, then restore original main instruction
+    Continue();
+    if (waitpid(pid_, &status, 0) == -1) {
+        perror("Couldn't wait on child process");
+        exit(1);
+    }
+
+    struct user_regs_struct regs;
+    ptrace(PTRACE_GETREGS, pid_, NULL, &regs);
+    regs.rip = (unsigned long long) main_address;
+    ptrace(PTRACE_SETREGS, pid_, NULL, &regs);
+    ptrace(PTRACE_POKETEXT, pid_, main_address, orig);
+}
+
+void *ProcessTracer::FindMainAddress() {
+    char *command = NULL;
+    asprintf(&command, "objdump -d /proc/%d/exe | grep \\<main\\>:", pid_);
+
+    FILE *command_output = popen(command, "r");
+    if (command_output == NULL) {
+        perror("popen failed");
+        return NULL;
+    }
+
+    const size_t offset = 0x555555554000;
+    char *address = NULL;
+    fscanf(command_output, "%p", &address);
+    return address + offset;
 }
 
 void ProcessTracer::Run() {
-    int status = 1407;
-    int in_call = 0;
     struct user_regs_struct regs;
+    ptrace(PTRACE_GETREGS, pid_, NULL, &regs);
+    printf("Program counter is 0x%llx\n", regs.rip);
 
-    while (status == 1407) {
-        ptrace(PTRACE_GETREGS, pid_, NULL, &regs) == -1;
-        if (!in_call) {
-            printf("SystemCall %llu called with %llu, %llu, %llu\n",regs.orig_rax, regs.rbx, regs.rcx, regs.rdx);
-        }
-        in_call = 1 - in_call; 
-        
-        if (ptrace(PTRACE_SYSCALL, pid_, NULL, NULL) == -1) {
-            break;
-        }
-        if (waitpid(pid_, &status, 0) == -1) {
-            break;
-        }
-    }
+    int status;
+    Continue();
+    waitpid(pid_, &status, 0);
 }
 
 void ProcessTracer::SingleStep(size_t num_steps) {
+    struct user_regs_struct regs;
+    ptrace(PTRACE_GETREGS, pid_, NULL, &regs);
+    printf("Program counter is 0x%llx\n", regs.rip);
+    
     for (size_t i = 0; i < num_steps; ++i) {
         if (ptrace(PTRACE_SINGLESTEP, pid_, NULL, 0) == -1) {
             perror("Ptrace single step failed");
