@@ -279,6 +279,13 @@ void CommandLineInterface::HandleInput(std::string input) {
 //        }
 
         memory_wrapper_.Write<int>(address, value);
+    } else if (command == "set") {
+        long value;
+        input_stream >> value;
+        for (int i = 0; i < history_.last_search->GetSize(); ++i) {
+            void* addr = history_.last_search->addresses[i];
+            memory_wrapper_.Write<long>(addr, value);
+        }
     } else if (command == "watch") {
         if(command == input){
             watchlist_.Print();
