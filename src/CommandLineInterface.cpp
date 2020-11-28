@@ -219,8 +219,10 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "display"){
         history_.last_search->Print();
     } else if (command == "findstr") {
-        // Converts rest of the stream (incl whitespace) to a string
+        // Converts rest of the stream (except leading whitespace but including spaces between words) to a string
+        input_stream.ignore();
         string pattern(std::istreambuf_iterator<char>(input_stream), {});
+
         auto matches = current.SearchString(pattern);
         for (auto match : matches) {
             cout << match << std::endl;
