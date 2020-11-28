@@ -220,24 +220,6 @@ void CommandLineInterface::HandleInput(std::string input) {
         }
     } else if (command == "display"){
         history_.last_search->Print();
-    } else if (command == "findfloat") {
-        float value;
-        input_stream >> value;
-
-        last_results = current.SearchValue<float>(value, eps_, VALUE_F32, memory_wrapper_);
-        last_results.Print();
-        if(!last_results.IsEmpty()){
-            history_.last_search = &last_results;
-        }
-    } else if (command == "finddouble") {
-        float value;
-        input_stream >> value;
-
-        MemoryList ml = current.SearchValue<double>(value, eps_, VALUE_F64, memory_wrapper_);
-        ml.Print();
-        if(!ml.IsEmpty()){
-            history_.last_search = &ml;
-        }
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
         exit(0);
@@ -253,21 +235,7 @@ void CommandLineInterface::HandleInput(std::string input) {
             }
             //history_.GetChangedValues(VALUE_S32, eps_).Print();
         }
-
-    } else if (command == "nextint") {
-        if(history_.IsEmpty()){
-            cout << "No history to search" << endl;
-            return;
-        }
-        int value;
-        input_stream >> value;
-
-        search_value sv;
-        sv.type = VALUE_S32;
-        sv.value.s32 = value;
-
-        // history_.GetChangedValues(sv, eps_).Print();
-    } else if (command == "writeint" || command == "write") {
+    } else if (command == "write") {
         if(argv.size() < 3){
             cout << "Usage: write <address> <value>" << endl;
             return;
