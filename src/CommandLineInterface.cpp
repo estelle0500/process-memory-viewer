@@ -100,6 +100,12 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "read") {
         void *address;
         input_stream >> address;
+        if(argv[1] == "!"){
+            address = (void*)history_.last_modified_address;
+        } else {
+            history_.last_modified_address = (long) address;
+        }
+
         cout << memory_wrapper_.Read<int>(address) << std::endl;
     } else if (command == "find") {
         if (argv.size() < 2) {
