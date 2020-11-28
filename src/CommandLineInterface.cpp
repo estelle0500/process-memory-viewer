@@ -8,6 +8,7 @@ namespace ProcessMemoryViewer {
 static constexpr char PROC_DIRECTORY[] = "/proc/";
 using std::cout;
 using std::endl;
+using std::string;
 
 pid_t get_pid_from_name(std::string procName) {
     DIR *proc_dir = opendir(PROC_DIRECTORY);
@@ -59,6 +60,9 @@ vector<string> CommandLineInterface::split(const string str) {
 }
 
 void CommandLineInterface::HandleInput(std::string input) {
+    using std::cout;
+    using std::endl;
+
     std::istringstream input_stream(input);
     string command;
 
