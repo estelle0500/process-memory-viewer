@@ -66,8 +66,6 @@ void CommandLineInterface::HandleInput(std::string input) {
 
     input_stream >> command;
 
-
-
     if (!tracer_.IsRunning()) {
         printf("Child process has stopped\n");
         exit(0);
@@ -220,6 +218,14 @@ void CommandLineInterface::HandleInput(std::string input) {
         }
     } else if (command == "display"){
         history_.last_search->Print();
+    } else if (command == "findstr") {
+        // Converts rest of the stream (incl whitespace) to a string
+        string pattern(std::istreambuf_iterator<char>(input_stream), {});
+        auto matches = current.SearchString(pattern);
+        for (auto match : matches) {
+            cout << match << std::endl;
+            cout << memory_wrapper_.GetRegionOfAddress(match) << std::endl;
+        }
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
         exit(0);

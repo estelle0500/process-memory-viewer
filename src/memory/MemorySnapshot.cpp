@@ -15,6 +15,25 @@ MemorySnapshot::MemorySnapshot(const VirtualMemoryWrapper &memory_wrapper){
     }
 }
 
+std::vector<void*> MemorySnapshot::SearchString(std::string pattern) {
+    std::vector<void*> matched_addresses;
+    if (pattern.empty()) {
+        return matched_addresses;
+    }
+
+    for (const auto &page_data : memory_) {
+        char *base_addr = (char*) page_data.first;
+        for (size_t offset = 0; offset < PAGE_SIZE - pattern.length(); ++offset) {
+            if (memcmp(&page_data.second[offset], pattern.c_str(), pattern.length()) == 0) {
+                void *addr = base_addr + offset;
+                matched_addresses.push_back(addr);
+            }
+        }
+    }
+
+    return matched_addresses;
+}
+
 void PrintDifferencesInRegion(void*, const std::vector<unsigned char>&, const std::vector<unsigned char>&);
 
 void MemorySnapshot::PrintAddressDifferences(const MemorySnapshot &other_snapshot) const {
