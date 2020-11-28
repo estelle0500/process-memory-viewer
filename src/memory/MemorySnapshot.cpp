@@ -1,7 +1,7 @@
 #include "MemorySnapshot.h"
 
 namespace ProcessMemoryViewer {
-MemorySnapshot::MemorySnapshot(const VirtualMemoryWrapper &memory_wrapper) {
+MemorySnapshot::MemorySnapshot(const VirtualMemoryWrapper &memory_wrapper){
     PAGE_SIZE = sysconf(_SC_PAGE_SIZE);
     auto regions = memory_wrapper.memory_regions();
 
@@ -61,7 +61,7 @@ void PrintDifferencesInRegion(void *addr_start, const std::vector<unsigned char>
     }
 }
 
-unsigned int MemorySnapshotManager::SaveSnapshot(const VirtualMemoryWrapper &memory_wrapper) {
+unsigned int MemorySnapshotManager::SaveSnapshot(VirtualMemoryWrapper &memory_wrapper) {
     unsigned int id = snapshots_.size();
     snapshots_.emplace_back(MemorySnapshot(memory_wrapper));
     return id;

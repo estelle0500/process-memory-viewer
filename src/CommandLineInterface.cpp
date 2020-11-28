@@ -2,12 +2,12 @@
 #include "memory/MemoryHistory.h"
 
 #include <dirent.h>         // For DIR
-#include <sys/types.h>
 #include <fstream>
 
 namespace ProcessMemoryViewer {
 static constexpr char PROC_DIRECTORY[] = "/proc/";
-using std::string;
+using std::cout;
+using std::endl;
 
 pid_t get_pid_from_name(std::string procName) {
     DIR *proc_dir = opendir(PROC_DIRECTORY);
@@ -45,13 +45,28 @@ pid_t get_pid_from_name(std::string procName) {
     return pid;
 }
 
-void CommandLineInterface::HandleInput(std::string input) {
-    using std::cout;
-    using std::endl;
+vector<string> CommandLineInterface::split(const string str) {
+    const char delimiter = ' ';
+    vector<string> tokens;
+    std::stringstream ss(str);
+    string token;
 
+    while(getline(ss, token, delimiter)){
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
+void CommandLineInterface::HandleInput(std::string input) {
     std::istringstream input_stream(input);
-    std::string command;
+    string command;
+
+    vector<string> argv = split(input);
+
     input_stream >> command;
+
+
 
     if (!tracer_.IsRunning()) {
         printf("Child process has stopped\n");
@@ -86,31 +101,136 @@ void CommandLineInterface::HandleInput(std::string input) {
         void *address;
         input_stream >> address;
         cout << memory_wrapper_.Read<int>(address) << std::endl;
-    } else if (command == "findint" || command == "find") {
-        int value;
-        input_stream >> value;
-        MemoryList ml = current.SearchValue<int>(value, eps_, VALUE_S32);
-        ml.Print();
-        if(!ml.IsEmpty()){
-            history_.last_search = ml;
+    } else if (command == "find") {
+        if (argv.size() < 2) {
+            cout << "Usage: find <value> [options]" << endl;
+            return;
         }
+
+
+
+        bool narrow = input.find("-n") != std::string::npos && !history_.IsEmpty();
+        bool print = input.find("-p") != std::string::npos;
+
+        char *p;
+        long converted = std::strtod(argv[1].c_str(), &p);
+        if (*p && !narrow) {
+            cout << "Usage: find <value> [options]" << endl;
+            return;
+        }
+        bool value_provided = !*p;
+
+        MemoryList *find_results;
+        for (int i = 1; i < argv.size(); ++i) {
+            string opt = argv[i];
+            if (opt == "-l") {
+                long value = std::strtol(argv[1].c_str(), &p, 10);
+                if (narrow) {
+                    MemoryList ml;
+                    if (value_provided) {
+                        search_value s;
+                        s.value.f64 = value;
+                        ml = history_.last_search->GetChangedValues(s, eps_);
+                    } else {
+                        ml = history_.last_search->GetChangedValues(VALUE_F64, eps_);
+                    }
+                    if (!ml.IsEmpty()) {
+                        last_results = ml;
+                    }
+                    break;
+                }
+                last_results = current.SearchValue<long>(value, eps_, VALUE_S64, memory_wrapper_);
+                find_results = &last_results;
+                break;
+            } else if (opt == "-f") {
+                float value = std::strtof(argv[1].c_str(), &p);
+                    if(narrow) {
+                        MemoryList ml;
+                        if (value_provided) {
+                            search_value s;
+                            s.value.f64 = value;
+                            ml = history_.last_search->GetChangedValues(s, eps_);
+                        } else {
+                            ml = history_.last_search->GetChangedValues(VALUE_F64, eps_);
+                        }
+                        if (!ml.IsEmpty()) {
+                            last_results = ml;
+                        }
+                        break;
+                    }
+
+                last_results = current.SearchValue<float>(value, eps_, VALUE_F32, memory_wrapper_);
+                find_results = &last_results;
+                break;
+            } else if (opt == "-d") {
+                double value = std::strtod(argv[1].c_str(), &p);
+                if(narrow){
+                    MemoryList ml;
+                    if(value_provided){
+                        search_value s;
+                        s.value.f64 = value;
+                        ml = history_.last_search->GetChangedValues(s, eps_);
+                    } else {
+                        ml = history_.last_search->GetChangedValues(VALUE_F64, eps_);
+                    }
+                    if(!ml.IsEmpty()){
+                        last_results = ml;
+                    }
+                    break;
+                }
+
+                last_results = current.SearchValue<double>(value, eps_, VALUE_F64, memory_wrapper_);
+                find_results = &last_results;
+                break;
+            }
+            if(i == argv.size()-1){
+                int value = std::strtol(argv[1].c_str(), &p, 10);
+                if(narrow){
+                    MemoryList ml;
+                    if(value_provided){
+                        search_value s;
+                        s.value.s32 = value;
+                        ml = history_.last_search->GetChangedValues(s, eps_);
+                    } else {
+                        ml = history_.last_search->GetChangedValues(VALUE_S32, eps_);
+                    }
+                    if(!ml.IsEmpty()){
+                        last_results = ml;
+                    }
+                    break;
+                }
+                last_results = current.SearchValue<int>(value, eps_, VALUE_S32, memory_wrapper_);
+                find_results = &last_results;
+                break;
+            }
+        }
+        find_results = &last_results;
+        find_results->PrintCount();
+        if (!find_results->IsEmpty()) {
+            history_.last_search = find_results;
+            if(print){
+                history_.last_search->Print();
+            }
+        }
+    } else if (command == "display"){
+        history_.last_search->Print();
     } else if (command == "findfloat") {
         float value;
         input_stream >> value;
 
-        MemoryList ml = current.SearchValue<float>(value, eps_, VALUE_F32);
-        ml.Print();
-        if(!ml.IsEmpty()){
-            history_.last_search = ml;
+        last_results = current.SearchValue<float>(value, eps_, VALUE_F32, memory_wrapper_);
+        last_results.Print();
+        if(!last_results.IsEmpty()){
+            history_.last_search = &last_results;
         }
     } else if (command == "finddouble") {
         float value;
         input_stream >> value;
 
-        MemoryList ml = current.SearchValue<double>(value, eps_, VALUE_F64);
+        MemoryList ml = current.SearchValue<double>(value, eps_, VALUE_F64, memory_wrapper_);
         ml.Print();
         if(!ml.IsEmpty()){
-            history_.last_search = ml;
+            history_.last_search = &ml;
         }
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
@@ -125,7 +245,7 @@ void CommandLineInterface::HandleInput(std::string input) {
                 cout << "No history to search" << endl;
                 return;
             }
-            history_.GetChangedValues(VALUE_S32, eps_).Print();
+            //history_.GetChangedValues(VALUE_S32, eps_).Print();
         }
 
     } else if (command == "nextint") {
@@ -140,11 +260,18 @@ void CommandLineInterface::HandleInput(std::string input) {
         sv.type = VALUE_S32;
         sv.value.s32 = value;
 
-        history_.GetChangedValues(sv, eps_).Print();
+        // history_.GetChangedValues(sv, eps_).Print();
     } else if (command == "writeint" || command == "write") {
         void *address;
         int value;
         input_stream >> address >> value;
+//        if(argv[1] == "!"){
+//            address = (void*)history_.last_modified_address;
+//
+//        } else {
+//            history_.last_modified_address = (long)address;
+//        }
+
         memory_wrapper_.Write<int>(address, value);
     } else if (command == "watch") {
         if(command == input){
@@ -156,8 +283,8 @@ void CommandLineInterface::HandleInput(std::string input) {
                 cout << "No Last Search" << std::endl;
                 return;
             }
-            for (int i = 0; i < history_.last_search.GetSize(); ++i) {
-                watchlist_.Add(history_.last_search.addresses.at(i));
+            for (int i = 0; i < history_.last_search->GetSize(); ++i) {
+                watchlist_.Add(history_.last_search->addresses.at(i));
             }
             return;
         }

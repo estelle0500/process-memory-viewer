@@ -3,8 +3,6 @@
 #include <vector>
 #include <unordered_map>
 #include <cstring>
-
-#include "MemoryRegion.h"
 #include "VirtualMemoryWrapper.h"
 #include "MemoryHistory.h"
 
@@ -22,8 +20,9 @@ class MemorySnapshot {
 
     /* Search addresses for "value" */
     template<typename T>
-    MemoryList SearchValue(T value, double eps, value_type type) {
+    MemoryList SearchValue(T value, double eps, value_type type, VirtualMemoryWrapper &memoryWrapper) {
         MemoryList res;
+        res.memory_wrapper = &memoryWrapper;
 
         for (const auto &page_data : memory_) {
             char *base_addr = (char*) page_data.first;
@@ -44,16 +43,20 @@ class MemorySnapshot {
                         case VALUE_F32: {
                             v.value.f32 = val;
                         } break;
+                        case VALUE_S64: {
+                            v.value.s64 = val;
+                        } break;
                         case VALUE_F64: {
                             v.value.f64 = val;
                         } break;
                     }
                     res.values.push_back(v);
+                    res.last_values.push_back(v);
                 }
             }
         }
 
-        return res;
+        return reinterpret_cast<const MemoryList &>(res);
     }
 
   private:
@@ -64,9 +67,9 @@ class MemorySnapshot {
 /* Container for many snapshots */
 class MemorySnapshotManager {
   public:
-    /* Save a snapshot of current process memory 
+/* Save a snapshot of current process memory
        Returns an id that can be used to refer to the snapshot */
-    unsigned int SaveSnapshot(const VirtualMemoryWrapper &memory_wrapper);
+    unsigned int SaveSnapshot(VirtualMemoryWrapper &memory_wrapper);
 
     /* Remove a snapshot given the current id */
     void DeleteSnapshot(unsigned int id);

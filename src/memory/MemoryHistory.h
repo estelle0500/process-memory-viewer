@@ -60,10 +60,15 @@ namespace ProcessMemoryViewer {
     /* A list of constant addresses & values taken at a certain interval */
     class MemoryList {
     public:
+        MemoryList();
+
         std::vector<void *> addresses;
         std::vector<search_value> values;
+        std::vector<search_value> last_values;
 
-        /* Returns the size of the vectors which should not be different. */
+        //MemoryList(VirtualMemoryWrapper *memoryWrapper);
+
+/* Returns the size of the vectors which should not be different. */
         int GetSize() { return addresses.size(); };
 
         /* Checks if there are any results */
@@ -74,44 +79,37 @@ namespace ProcessMemoryViewer {
             values.erase(values.begin());
         }
 
-        /* Gets the stored value based on an index from the address */
-        search_value GetValue(void *addr) {
+        int GetIndex(void *addr){
             auto it = std::find(addresses.begin(), addresses.end(), addr);
             if (it == addresses.end()) {
-                return *new search_value();
+                return -1;
             }
             int index = it - addresses.begin();
+            return index;
+        }
+
+        /* Gets the stored value based on an index from the address */
+        search_value GetValue(void *addr) {
+            int index = GetIndex(addr);
             return values.at((size_t) index);
         }
 
+        /* Read the current value */
+        void UpdateValue(void *addr);
 
         /* Helper method to add an address & value combination */
-        void Add(void *addr, search_value value) {
+        void Add(void *addr, search_value value, search_value last_value) {
             addresses.push_back(addr);
             values.push_back(value);
+            last_values.push_back(last_value);
         }
+
 
         /* Print the list with the original value as it is stored */
         void Print();
-    };
 
-    /* History of read & modified addresses that can be recalled for ease of use */
-    class History {
-    public:
-        /* Last list to be interacted with. Shortcut for adding to watchlist */
-        MemoryList *last_list;
-
-        /* Original value search */
-        MemoryList last_search;
-
-        /* A search with a filter applied (ie: changed value, next value)*/
-        MemoryList last_filtered_search;
-
-        /* Address of the last write */
-        void *last_modified_address;
-
-        /* Search History is empty */
-        bool IsEmpty();
+        /* Prints the count of items contained in the search */
+        void PrintCount();
 
         /* Get a list all values that have changed from the last search*/
         MemoryList GetChangedValues(value_type type, double eps);
@@ -119,12 +117,34 @@ namespace ProcessMemoryViewer {
         /* Get a list of all values from the last search that now match a specified value */
         MemoryList GetChangedValues(search_value value, double eps);
 
+        /* Used to get current values of addresses */
+        VirtualMemoryWrapper *memory_wrapper;
+    };
+
+    /* History of read & modified addresses that can be recalled for ease of use */
+    class History {
+    public:
+        History(VirtualMemoryWrapper &memoryWrapper);
+
+/* Last list to be interacted with. Shortcut for adding to watchlist */
+        MemoryList *last_list;
+
+        /* Original value search */
+        //MemoryList last_search = MemoryList(memory_wrapper_);
+        MemoryList* last_search;
+
+        /* A search with a filter applied (ie: changed value, next value)*/
+        MemoryList* last_filtered_search;
+        //MemoryList last_filtered_search = MemoryList(memory_wrapper_);
+
+        /* Address of the last write */
+        long last_modified_address;
+
+        /* Search History is empty */
+        bool IsEmpty();
+
         /* Print the values of the last search */
         void Print();
-
-        History(VirtualMemoryWrapper &memoryWrapper)
-                : memory_wrapper_(memoryWrapper) {}
-
 
     private:
         VirtualMemoryWrapper &memory_wrapper_;
