@@ -13,7 +13,7 @@
 
 namespace ProcessMemoryViewer {
 ProcessTracer::~ProcessTracer() {
-    if (IsRunning()) {
+    if (IsValid()) {
         Kill();
     }
 }
@@ -120,8 +120,11 @@ bool ProcessTracer::IsRunning() const {
 void ProcessTracer::Kill() {
     ptrace(PTRACE_DETACH, pid_, 0, 0);
     kill(pid_, SIGTERM);
-    int child_status;
-    waitpid(pid_, &child_status, 0);
+    int child_status = 0;
+    
+    while (WIFEXITED(child_status) == 0) {
+        waitpid(pid_, &child_status, 0);
+    }
 }
 
 void ProcessTracer::Pause() {
