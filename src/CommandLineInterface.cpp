@@ -268,15 +268,21 @@ void CommandLineInterface::HandleInput(std::string input) {
 
         // history_.GetChangedValues(sv, eps_).Print();
     } else if (command == "writeint" || command == "write") {
+        if(argv.size() < 3){
+            cout << "Usage: write <address> <value>" << endl;
+            return;
+        }
+        char *p;
         void *address;
         int value;
-        input_stream >> address >> value;
-//        if(argv[1] == "!"){
-//            address = (void*)history_.last_modified_address;
-//
-//        } else {
-//            history_.last_modified_address = (long)address;
-//        }
+        if(argv[1] == "!"){
+            address = (void*)history_.last_modified_address;
+        } else {
+            input_stream >> address;
+            history_.last_modified_address = (long)address;
+        }
+
+        value = std::strtol(argv[2].c_str(), &p, 10);
 
         memory_wrapper_.Write<int>(address, value);
     } else if (command == "set") {
