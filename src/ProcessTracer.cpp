@@ -12,6 +12,12 @@
 #include <sstream>
 
 namespace ProcessMemoryViewer {
+ProcessTracer::~ProcessTracer() {
+    if (IsRunning()) {
+        Kill();
+    }
+}
+
 void ProcessTracer::Start(char *executable_name, char **args) {
     int fork_code = fork();
     if (fork_code == 0) { // Child
@@ -72,9 +78,7 @@ void ProcessTracer::Run() {
     ptrace(PTRACE_GETREGS, pid_, NULL, &regs);
     printf("Program counter is 0x%llx\n", regs.rip);
 
-    int status;
     Continue();
-    waitpid(pid_, &status, 0);
 }
 
 void ProcessTracer::SingleStep(size_t num_steps) {
@@ -108,6 +112,7 @@ bool ProcessTracer::IsRunning() const {
 }
 
 void ProcessTracer::Kill() {
+    ptrace(PTRACE_DETACH, pid_, 0, 0);
     kill(pid_, SIGTERM);
     int child_status;
     waitpid(pid_, &child_status, 0);

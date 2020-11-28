@@ -34,14 +34,13 @@ int main(int argc, char* argv[]) {
         flush(cout);
 
         std::string input;
-        getline(cin, input);
-        if (cin.eof()) {
+        if (getline(cin, input).eof()) {
             break;
         }
 
         cli.HandleInput(input);
     }
 
-    tracer.Kill();
+    cout << "Exiting..." << std::endl;
     return 0;
 }

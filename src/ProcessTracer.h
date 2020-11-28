@@ -6,6 +6,10 @@ namespace ProcessMemoryViewer {
 /* Manages the child process and sends signal */
 class ProcessTracer {
   public:
+    ProcessTracer() = default;
+
+    ~ProcessTracer();
+
     /* Creates a child process that will exec the executable */
     void Start(char *executable_name, char **args);
 
@@ -37,6 +41,6 @@ class ProcessTracer {
   private:
     pid_t pid_ = -1;
 
-    void *FindMainAddress();
+    void* FindMainAddress();
 };
 } // namespace ProcessMemoryViewer
