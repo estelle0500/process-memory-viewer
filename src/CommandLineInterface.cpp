@@ -112,6 +112,14 @@ void CommandLineInterface::HandleInput(std::string input) {
         if(!ml.IsEmpty()){
             history_.last_search = ml;
         }
+    } else if (command == "findstr") {
+        // Converts rest of the stream (incl whitespace) to a string
+        string pattern(std::istreambuf_iterator<char>(input_stream), {}); 
+        auto matches = current.SearchString(pattern);
+        for (auto match : matches) {
+            cout << match << std::endl;
+            cout << memory_wrapper_.GetRegionOfAddress(match) << std::endl;
+        }
     } else if (command == "kill" || command == "exit") {
         tracer_.Kill();
         exit(0);

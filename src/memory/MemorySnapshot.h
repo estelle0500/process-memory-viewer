@@ -56,6 +56,9 @@ class MemorySnapshot {
         return res;
     }
 
+    /* Search for addresses that match the string */
+    std::vector<void*> SearchString(std::string pattern);
+
   private:
     std::unordered_map<void *, std::vector<unsigned char> > memory_;
     size_t PAGE_SIZE;
