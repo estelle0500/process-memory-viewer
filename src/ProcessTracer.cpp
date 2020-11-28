@@ -39,6 +39,10 @@ void ProcessTracer::Start(char *executable_name, char **args) {
     // Replace instruction at `main` with a trapping instruction
     void *main_address = FindMainAddress();
     std::cout << main_address << std::endl;
+    if (main_address == nullptr) { // Can't find main
+        return;
+    }
+
     long orig = ptrace(PTRACE_PEEKTEXT, pid_, main_address, NULL);
     long trap = (orig & ~0xff) | 0xcc;
     ptrace(PTRACE_POKETEXT, pid_, main_address, trap);
@@ -58,18 +62,20 @@ void ProcessTracer::Start(char *executable_name, char **args) {
 }
 
 void *ProcessTracer::FindMainAddress() {
-    char *command = NULL;
+    char *command = nullptr;
     asprintf(&command, "objdump -d /proc/%d/exe | grep \\<main\\>:", pid_);
 
     FILE *command_output = popen(command, "r");
-    if (command_output == NULL) {
+    if (command_output == nullptr) {
         perror("popen failed");
-        return NULL;
+        return nullptr;
     }
 
     const size_t offset = 0x555555554000;
-    char *address = NULL;
-    fscanf(command_output, "%p", &address);
+    char *address = nullptr;
+    if (fscanf(command_output, "%p", &address) != 1) {
+        return nullptr;
+    }
     return address + offset;
 }
 
