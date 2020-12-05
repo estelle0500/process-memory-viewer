@@ -1,8 +1,5 @@
 #include <string>
 #include <iostream>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fstream>
 
 #include "src/memory/VirtualMemoryWrapper.h"
 #include "src/Watchlist.h"
@@ -12,10 +9,11 @@
 using std::string;
 using std::cin;
 using std::cout;
+using std::endl;
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cout << "Usage: ./ProcessMemoryViewer <exe> [ARGS]..." << std::endl;
+        cout << "Usage: ./ProcessMemoryViewer <exe> [ARGS]..." << endl;
         return 1;
     }
 
@@ -41,6 +39,6 @@ int main(int argc, char* argv[]) {
         cli.HandleInput(input);
     }
 
-    cout << "Exiting..." << std::endl;
+    cout << "Exiting..." << endl;
     return 0;
 }
