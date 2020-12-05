@@ -288,6 +288,12 @@ void CommandLineInterface::HandleInput(std::string input) {
         value = std::strtol(argv[2].c_str(), &p, 10);
 
         memory_wrapper_.Write<int>(address, value);
+    } else if (command == "writestr") {
+        void *address;
+        input_stream >> address;
+        input_stream.ignore();
+        string write_value(std::istreambuf_iterator<char>(input_stream), {});
+        memory_wrapper_.WriteString(address, write_value);
     } else if (command == "set") {
         long value;
         input_stream >> value;

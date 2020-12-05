@@ -49,6 +49,12 @@ class VirtualMemoryWrapper {
       }
     }
 
+    void WriteString(void *address, std::string value) {
+      struct iovec remote_iov{address, value.length() + 1};
+      struct iovec local_iov{(void*) value.c_str(), value.length() + 1};
+      process_vm_writev(process_id_, &local_iov, 1, &remote_iov, 1, 0);
+    }
+
     /* Prints mapped memory regions */
     void PrintRegionInfo() const;
 
