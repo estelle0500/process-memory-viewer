@@ -25,8 +25,8 @@ bool ProcessTracer::ChangeTarget(pid_t pid){
 void ProcessTracer::Start(char *executable_name, char **args) {
     int fork_code = fork();
     if (fork_code == 0) { // Child
-         ptrace(PTRACE_TRACEME, 0, NULL, 0);
-         personality(ADDR_NO_RANDOMIZE);
+        ptrace(PTRACE_TRACEME, 0, NULL, 0);
+        personality(ADDR_NO_RANDOMIZE);
         execvp(executable_name, args);
         exit(1);
     }
@@ -38,11 +38,12 @@ void ProcessTracer::Start(char *executable_name, char **args) {
         exit(1);
     }
 
-    if(IsRunning()){
+    if (IsRunning()) {
         std::cout << "Process started with PID: " << pid_ << std::endl;
     } else {
         std::cout << "Process unable to be started" << std::endl;
     }
+    ptrace(PTRACE_SETOPTIONS, 0, PTRACE_O_EXITKILL);
 
     // Replace instruction at `main` with a trapping instruction
     void *main_address = FindMainAddress();
@@ -81,10 +82,12 @@ void *ProcessTracer::FindMainAddress() {
 
     const size_t offset = 0x555555554000;
     char *address = nullptr;
-    if (fscanf(command_output, "%p", &address) != 1) {
-        return nullptr;
+    if (fscanf(command_output, "%p", &address) == 1) {
+        address += offset;
     }
-    return address + offset;
+
+    pclose(command_output);
+    return address;
 }
 
 void ProcessTracer::Run() {
@@ -136,10 +139,11 @@ void ProcessTracer::Kill() {
 }
 
 void ProcessTracer::Pause() {
-    kill(pid_, SIGSTOP);
+    ptrace(PTRACE_ATTACH, pid_, 0, 0);
+    waitpid(pid_, NULL, 0);
 }
 
 void ProcessTracer::Continue() {
-    ptrace(PTRACE_CONT, pid_, 0, 0);
+    ptrace(PTRACE_DETACH, pid_, 0, 0);
 }
 } // namespace ProcessMemoryViewer
