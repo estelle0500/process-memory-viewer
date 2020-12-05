@@ -25,8 +25,8 @@ bool ProcessTracer::ChangeTarget(pid_t pid){
 void ProcessTracer::Start(char *executable_name, char **args) {
     int fork_code = fork();
     if (fork_code == 0) { // Child
-        // ptrace(PTRACE_TRACEME, 0, NULL, 0);
-        // personality(ADDR_NO_RANDOMIZE);
+         ptrace(PTRACE_TRACEME, 0, NULL, 0);
+         personality(ADDR_NO_RANDOMIZE);
         execvp(executable_name, args);
         exit(1);
     }
