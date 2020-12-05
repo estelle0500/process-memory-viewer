@@ -89,4 +89,8 @@ void VirtualMemoryWrapper::PrintRegion(int index, size_t buffer_size){
         chunk++;
     }
 }
+
+    void VirtualMemoryWrapper::SetPid(pid_t pid) {
+        process_id_ = pid;
+    }
 } // namespace ProcessMemoryViewer

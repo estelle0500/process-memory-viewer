@@ -73,15 +73,26 @@ void CommandLineInterface::HandleInput(std::string input) {
 
     input_stream >> command;
 
-    if (!tracer_.IsRunning()) {
-        printf("Child process has stopped\n");
-        exit(0);
+    if (!tracer_.IsRunning() && argv[0] != "attach") {
+        printf("Child process has stopped. Use 'attach' command.\n");
+        return;
     }
     memory_wrapper_.ParseMaps();
     MemorySnapshot current(memory_wrapper_);
 
     if (command == "info") {
-        memory_wrapper_.PrintRegionInfo();
+        cout << "Target Pid:\t\t\t" << tracer_.pid() << endl;
+        cout << "Target name:\t\t\t" << get_proc_name(tracer_.pid()) << endl;
+    } else if (command == "attach") {
+        uint target;
+        input_stream >> target;
+        if(tracer_.ChangeTarget((pid_t)target)){
+            memory_wrapper_.SetPid((pid_t)target);
+            cout << "Attached to Process" << target << endl;
+        } else {
+            cout << "Invalid Process: " << target << endl;
+        }
+
     } else if (command == "cont") {
         tracer_.Continue();
     } else if (command == "getpid") {

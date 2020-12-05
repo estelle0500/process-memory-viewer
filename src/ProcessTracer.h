@@ -34,13 +34,15 @@ class ProcessTracer {
     /* Continues the child process */
     void Continue();
 
+    /* Changes the process target */
+    bool ChangeTarget(pid_t pid);
+
     pid_t pid() const {
         return pid_;
     }
 
   private:
     pid_t pid_ = -1;
-
     void* FindMainAddress();
 };
 } // namespace ProcessMemoryViewer

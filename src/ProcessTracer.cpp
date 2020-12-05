@@ -18,11 +18,15 @@ ProcessTracer::~ProcessTracer() {
     }
 }
 
+bool ProcessTracer::ChangeTarget(pid_t pid){
+    return kill(pid, 0) == 0 && (this->pid_ = pid);
+}
+
 void ProcessTracer::Start(char *executable_name, char **args) {
     int fork_code = fork();
     if (fork_code == 0) { // Child
-        ptrace(PTRACE_TRACEME, 0, NULL, 0);
-        personality(ADDR_NO_RANDOMIZE);
+        // ptrace(PTRACE_TRACEME, 0, NULL, 0);
+        // personality(ADDR_NO_RANDOMIZE);
         execvp(executable_name, args);
         exit(1);
     }
@@ -34,7 +38,11 @@ void ProcessTracer::Start(char *executable_name, char **args) {
         exit(1);
     }
 
-    std::cout << "Process started with PID: " << pid_ << std::endl;
+    if(IsRunning()){
+        std::cout << "Process started with PID: " << pid_ << std::endl;
+    } else {
+        std::cout << "Process unable to be started" << std::endl;
+    }
 
     // Replace instruction at `main` with a trapping instruction
     void *main_address = FindMainAddress();

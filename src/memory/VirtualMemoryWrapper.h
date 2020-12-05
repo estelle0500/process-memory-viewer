@@ -65,8 +65,11 @@ class VirtualMemoryWrapper {
         return memory_regions_;
     }
 
+    void SetPid(pid_t pid);
+
+
   private:
-    const pid_t process_id_;
+    pid_t process_id_;
     std::vector<MemoryRegion> memory_regions_;
 };
 } // namespace ProcessMemoryViewer
