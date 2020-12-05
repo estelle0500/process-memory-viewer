@@ -84,11 +84,18 @@ void CommandLineInterface::HandleInput(std::string input) {
         cout << "Target Pid:\t\t\t" << tracer_.pid() << endl;
         cout << "Target name:\t\t\t" << get_proc_name(tracer_.pid()) << endl;
     } else if (command == "attach") {
+        string pattern;
         uint target;
-        input_stream >> target;
+        input_stream >> pattern;
+        if(pattern[0] == ':'){
+            string number = pattern.substr(1);
+            target = std::stoi(number);
+        } else {
+            target = get_proc_pid(pattern);
+        }
         if(tracer_.ChangeTarget((pid_t)target)){
             memory_wrapper_.SetPid((pid_t)target);
-            cout << "Attached to Process" << target << endl;
+            cout << "Attached to Process: " << target << endl;
         } else {
             cout << "Invalid Process: " << target << endl;
         }
