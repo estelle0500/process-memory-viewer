@@ -36,5 +36,6 @@ namespace ProcessMemoryViewer {
         History &history_;
     };
 
-    pid_t get_pid_from_name(std::string procName);
+    string get_proc_name(pid_t pid);
+    pid_t get_proc_pid(std::string procName);
 } // namespace ProcessMemoryViewer

@@ -10,7 +10,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-pid_t get_pid_from_name(std::string procName) {
+pid_t get_proc_pid(std::string procName) {
     DIR *proc_dir = opendir(PROC_DIRECTORY);
     if (!proc_dir) {
         perror("Could not open proc directory");
@@ -26,15 +26,7 @@ pid_t get_pid_from_name(std::string procName) {
             continue;
         }
 
-        string cmdPath = string(PROC_DIRECTORY) + proc->d_name + "/cmdline";
-        std::ifstream cmdFile(cmdPath.c_str());
-        string line;
-        getline(cmdFile, line);
-
-        size_t pos = line.find('\0');
-        if (pos != string::npos) {
-            line = line.substr(0, pos);
-        }
+        string line = get_proc_name(id);
 
         if (procName == line) {
             pid = id;
@@ -44,6 +36,19 @@ pid_t get_pid_from_name(std::string procName) {
 
     closedir(proc_dir);
     return pid;
+}
+
+string get_proc_name(pid_t pid){
+    string cmdPath = string(PROC_DIRECTORY) + std::to_string(pid) + "/cmdline";
+    std::ifstream cmdFile(cmdPath.c_str());
+    string name;
+    getline(cmdFile, name);
+
+    size_t pos = name.find('\0');
+    if (pos != string::npos) {
+        name = name.substr(0, pos);
+    }
+    return name;
 }
 
 vector<string> CommandLineInterface::split(const string str) {
@@ -60,8 +65,6 @@ vector<string> CommandLineInterface::split(const string str) {
 }
 
 void CommandLineInterface::HandleInput(std::string input) {
-    using std::cout;
-    using std::endl;
 
     std::istringstream input_stream(input);
     string command;
@@ -84,7 +87,11 @@ void CommandLineInterface::HandleInput(std::string input) {
     } else if (command == "getpid") {
         std::string name;
         input_stream >> name;
-        cout << get_pid_from_name(name) << std::endl;
+        cout << get_proc_pid(name) << std::endl;
+    } else if (command == "getname") {
+        int pid;
+        input_stream >> pid;
+        cout << get_proc_name(pid) << endl;
     } else if (command == "getregion") {
         void *address;
         input_stream >> address;
@@ -114,8 +121,6 @@ void CommandLineInterface::HandleInput(std::string input) {
             cout << "Usage: find <value> [options]" << endl;
             return;
         }
-
-
 
         bool narrow = input.find("-n") != std::string::npos && !history_.IsEmpty();
         bool print = input.find("-p") != std::string::npos;
