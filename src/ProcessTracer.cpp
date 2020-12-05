@@ -57,7 +57,7 @@ void ProcessTracer::Start(char *executable_name, char **args) {
     ptrace(PTRACE_POKETEXT, pid_, main_address, trap);
 
     // Continue program until just before main, then restore original main instruction
-    Continue();
+    ptrace(PTRACE_CONT, pid_, 0, 0);
     if (waitpid(pid_, &status, 0) == -1) {
         perror("Couldn't wait on child process");
         exit(1);
